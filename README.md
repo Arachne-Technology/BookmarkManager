@@ -1,12 +1,12 @@
-# BookmarkParser - Phase 1 MVP
+# BookmarkParser
 
-Containerized web application for organizing and managing browser bookmark collections with a modern web interface.
+A containerized web application that helps users organize and manage browser bookmark collections through a modern web interface.
 
 ## Overview
 
-BookmarkParser helps users efficiently organize their bookmark collections through an intuitive web interface. Upload your browser bookmarks, review them in an organized display, and download a cleaned collection. Phase 1 focuses on core functionality with AI features planned for Phase 2.
+BookmarkParser helps users efficiently organize their bookmark collections through an intuitive web interface. Upload your browser bookmarks, review them in an organized display, and download a cleaned collection.
 
-### Current Features (Phase 1)
+### Current Features
 
 - **Multi-Browser Support** - Import from Chrome, Firefox, Safari, Edge HTML exports
 - **Modern Web UI** - Responsive React interface with drag-and-drop upload
@@ -52,27 +52,57 @@ BookmarkParser helps users efficiently organize their bookmark collections throu
 
 ### Project Structure
 
+```
+backend/
+├── src/
+│   ├── routes/        # Express route handlers
+│   ├── services/      # Business logic layer
+│   ├── parsers/       # Bookmark HTML parsing
+│   ├── models/        # Data models and database schemas
+│   ├── middleware/    # Express middleware
+│   ├── types/         # TypeScript type definitions
+│   └── utils/         # Shared utilities
+├── uploads/           # Temporary file storage
+└── tests/             # Backend test files
+
+frontend/
+├── src/
+│   ├── components/    # React components
+│   ├── pages/         # Page components
+│   ├── hooks/         # Custom React hooks
+│   ├── services/      # API client functions
+│   ├── types/         # TypeScript type definitions
+│   └── utils/         # Frontend utilities
+├── public/            # Static assets
+└── tests/             # Frontend test files
+
+docker/                # Docker configuration files
+sample-data/           # Sample bookmark files for testing
+```
+
 ### Development Commands
 
 ```bash
 # Start development environment
 docker-compose up -d
 
-# Backend development server
-npm run dev:backend
+# Backend development server (from backend/ directory)
+cd backend && npm run dev
 
-# Frontend development server  
-npm run dev:frontend
+# Frontend development server (from frontend/ directory)
+cd frontend && npm run dev
 
 # Run tests
-npm run test
+cd backend && npm run test
+cd frontend && npm run test
 
 # Code quality checks
-npm run lint
-npm run typecheck
+cd backend && npm run lint && npm run typecheck
+cd frontend && npm run lint && npm run typecheck
 
 # Build for production
-npm run build
+cd backend && npm run build
+cd frontend && npm run build
 ```
 
 ### Technology Stack
@@ -81,28 +111,22 @@ npm run build
 - Node.js 18+ with TypeScript
 - Express.js web framework
 - PostgreSQL database
-- Redis for caching and queues
+- Redis for caching and sessions
 - Cheerio for HTML parsing
-- Puppeteer for web scraping
+- Multer for file uploads
 
 **Frontend:**
 - React 18+ with TypeScript
+- Vite for build tooling
 - Tailwind CSS for styling
 - React Query for state management
 - React Router for navigation
 - Lucide icons
 
-**AI Providers:**
-- Anthropic Claude API
-- OpenAI GPT-4 API
-- Local Llama models (optional)
-
 ## Environment Variables
 
 ### Required
 
-- `CLAUDE_API_KEY` - Anthropic Claude API key
-- `OPENAI_API_KEY` - OpenAI API key
 - `DATABASE_URL` - PostgreSQL connection string
 - `REDIS_URL` - Redis connection string
 
@@ -113,96 +137,46 @@ npm run build
 - `FRONTEND_URL` - Frontend URL for CORS
 - `LOG_LEVEL` - Logging level (debug/info/warn/error)
 - `UPLOAD_LIMIT` - Max file upload size (default: 10MB)
-- `DEFAULT_AI_PROVIDER` - Default provider (claude/openai/llama)
-- `MAX_COST_PER_SESSION` - Budget limit in USD
-- `RATE_LIMIT_REQUESTS_PER_MINUTE` - API rate limiting
 
 ## Testing
 
 ### Sample Data
 
-The `sample-data/` directory contains test bookmark files from various browsers:
-
-- `chrome-bookmarks.html` - Chrome export sample
-- `firefox-bookmarks.html` - Firefox export sample
-- `safari-bookmarks.html` - Safari export sample
-- `large-collection.html` - 1000+ bookmark test file
+The `sample-data/` directory contains test bookmark files for development and testing.
 
 ### Running Tests
 
 ```bash
-# Unit tests
-npm run test:unit
+# Backend tests
+cd backend && npm run test
 
-# Integration tests
-npm run test:integration
+# Frontend tests
+cd frontend && npm run test
 
-# End-to-end tests
-npm run test:e2e
-
-# Test coverage
-npm run test:coverage
+# Watch mode
+cd backend && npm run test:watch
+cd frontend && npm run test
 ```
 
 ## Configuration
 
-### AI Provider Setup
-
-#### Claude (Recommended)
-1. Get API key from [Anthropic Console](https://console.anthropic.com/)
-2. Set `CLAUDE_API_KEY` in environment variables
-3. Configure cost limits in web interface
-
-#### OpenAI GPT-4
-1. Get API key from [OpenAI Platform](https://platform.openai.com/)
-2. Set `OPENAI_API_KEY` in environment variables
-3. Monitor usage through OpenAI dashboard
-
-#### Local Llama (Privacy-Focused)
-1. Download model files to `models/` directory
-2. Set `LLAMA_MODEL_PATH` environment variable
-3. Requires additional RAM (8GB+ recommended)
-
 ### Database Configuration
 
-The application uses PostgreSQL for persistent data and Redis for caching. Both are configured via Docker Compose for development.
+The application uses PostgreSQL for persistent data and Redis for sessions and caching. Both are configured via Docker Compose for development.
 
 For production deployment:
 - Use managed database services
 - Configure backup strategies
 - Set up monitoring and alerting
 
-## Cost Management
-
-### Understanding Costs
-
-- **Claude**: ~$0.01 per bookmark analysis
-- **OpenAI GPT-4**: ~$0.02 per bookmark analysis
-- **Local Llama**: Free after model download
-
-### Cost Controls
-
-- Set session budgets in web interface
-- Preview costs before processing
-- Selective processing by folder/bookmark
-- Real-time cost tracking
-- Automatic stops at budget limits
-
 ## Security & Privacy
 
 ### Data Handling
 
 - All bookmark data processed locally
-- Only summary requests sent to AI providers
-- No persistent storage of sensitive content
-- Automatic cleanup of temporary files
-
-### API Key Security
-
-- Environment variable storage
-- No keys in source code or logs
-- Secure container environment
-- Option for local AI processing
+- No external API calls for data processing
+- Temporary file storage with automatic cleanup
+- Session-based data management
 
 ## Deployment
 
@@ -235,11 +209,6 @@ Ensure all required environment variables are set for production deployment. Use
 - Check file size limits (`UPLOAD_LIMIT`)
 - Verify file format (HTML bookmark export)
 - Ensure sufficient disk space
-
-**AI processing errors:**
-- Verify API keys are valid
-- Check rate limiting settings
-- Monitor cost budgets
 
 **Performance issues:**
 - Increase Docker memory allocation
@@ -282,12 +251,17 @@ docker-compose logs
 
 ## Roadmap
 
-### MVP (Current)
+### Current Implementation
 - Multi-browser bookmark import
-- Multi-AI provider support
-- Cost control and tracking
-- Web interface for management
+- Web interface for bookmark management
+- Export functionality
 - Docker deployment
+
+### Planned Features
+- AI-powered bookmark analysis and categorization
+- Advanced search and filtering
+- Bookmark deduplication
+- Enhanced export options
 
 ## Support
 
