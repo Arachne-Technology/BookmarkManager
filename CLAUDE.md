@@ -78,75 +78,40 @@ sample-data/           # Sample bookmark files for testing
 - `LOG_LEVEL` - Logging level (debug, info, warn, error)
 - `UPLOAD_LIMIT` - Maximum file upload size (default: 10MB)
 - `DEFAULT_AI_PROVIDER` - Default AI provider (claude, openai, llama)
-- `MAX_COST_PER_SESSION` - Maximum allowed cost per session (USD)
 - `RATE_LIMIT_REQUESTS_PER_MINUTE` - Global rate limit for AI requests
 
 ### Backend Dependencies
-```json
-{
-  "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "helmet": "^7.0.0",
-    "multer": "^1.4.5-lts.1",
-    "cheerio": "^1.0.0-rc.12",
-    "puppeteer": "^21.0.0",
-    "@anthropic-ai/sdk": "^0.24.0",
-    "openai": "^4.0.0",
-    "node-llama-cpp": "^2.7.0",
-    "pg": "^8.11.0",
-    "redis": "^4.6.0",
-    "express-rate-limit": "^6.8.0",
-    "compression": "^1.7.4",
-    "winston": "^3.10.0",
-    "bull": "^4.11.0",
-    "ioredis": "^5.3.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/express": "^4.17.0",
-    "@types/cors": "^2.8.0",
-    "@types/multer": "^1.4.7",
-    "@types/pg": "^8.10.0",
-    "typescript": "^5.0.0",
-    "ts-node": "^10.9.0",
-    "nodemon": "^3.0.0"
-  }
-}
-```
+- Express.js with TypeScript
+- Cheerio for HTML parsing
+- Puppeteer for web scraping
+- Anthropic Claude SDK
+- OpenAI SDK
+- Node Llama CPP (optional)
+- PostgreSQL client
+- Redis client
+- Rate limiting middleware
+- Security middleware
+- Logging utilities
+- Job queue management
 
 ### Frontend Dependencies
-```json
-{
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.14.0",
-    "axios": "^1.4.0",
-    "react-query": "^3.39.0",
-    "react-dropzone": "^14.2.0",
-    "react-hot-toast": "^2.4.0",
-    "lucide-react": "^0.263.0"
-  },
-  "devDependencies": {
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@vitejs/plugin-react": "^4.0.0",
-    "vite": "^4.4.0",
-    "tailwindcss": "^3.3.0",
-    "autoprefixer": "^10.4.0",
-    "postcss": "^8.4.0"
-  }
-}
-```
+- React with TypeScript
+- React Router for navigation
+- Axios for API calls
+- React Query for server state
+- React Dropzone for file uploads
+- React Hot Toast for notifications
+- Lucide React for icons
+- Tailwind CSS for styling
+- Vite for build tooling
 
 ### Key Features to Implement
 1. **File Upload Interface**: Web form for uploading bookmark HTML files
 2. **Bookmark Parser**: Parse Chrome/Firefox/Safari HTML exports on server
 3. **Multi-Provider AI Engine**: Support Claude, OpenAI, and local Llama models
-4. **Cost Management System**: Real-time cost tracking and budget controls
+4. **Selective Processing**: Choose individual bookmarks or folders for AI analysis
 5. **Selective Processing**: Choose individual bookmarks or folders for AI analysis
-6. **Interactive Web UI**: Grid/list view with AI provider selection and cost dashboard
+6. **Interactive Web UI**: Grid/list view with AI provider selection
 7. **Queue Management**: Batch processing with rate limiting and priority handling
 8. **Session Management**: Store user sessions, provider configs, and bookmark state
 9. **Export Engine**: Generate cleaned bookmark HTML files for download
@@ -156,11 +121,11 @@ sample-data/           # Sample bookmark files for testing
 - **Responsive Design**: Mobile-friendly interface using Tailwind CSS
 - **Real-time Updates**: WebSocket connections for live analysis progress and cost tracking
 - **AI Provider Management**: Configuration interface for multiple AI backends
-- **Cost Control Dashboard**: Real-time cost tracking with budget alerts
+- **Provider Configuration**: Easy AI provider setup and configuration
 - **Selective Processing**: Tree view for choosing bookmarks/folders to analyze
 - **Queue Visualization**: Processing queue with pause/resume/reorder capabilities
 - **File Management**: Secure upload handling with validation
-- **User Sessions**: Temporary sessions with provider preferences and cost tracking
+- **User Sessions**: Temporary sessions with provider preferences
 - **Progress Tracking**: Visual indicators for analysis and cleanup progress
 - **Download Management**: Secure file generation and download handling
 

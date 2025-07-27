@@ -4,17 +4,16 @@
 
 ### Core Features (Must Have)
 1. **File Upload & Parsing** - Accept browser bookmark HTML uploads
-2. **Multi-AI Provider Support** - Claude, OpenAI, Local Llama with cost control
+2. **Multi-AI Provider Support** - Claude, OpenAI, Local Llama
 3. **Selective Processing** - Choose bookmarks/folders for AI analysis
-4. **Cost Management** - Real-time tracking, budgets, estimation
-5. **Interactive Management** - Web UI for bookmark review and decisions
+4. **Interactive Management** - Web UI for bookmark review and decisions
 6. **Export Functionality** - Generate cleaned bookmark HTML files
 7. **Containerized Deployment** - Docker-based setup
 
 ### Success Criteria
 - ✅ Parse 10,000+ bookmark collections
 - ✅ Process 100 bookmarks with AI analysis in <5 minutes
-- ✅ Cost tracking accurate to within $0.01
+- ✅ AI provider switching without data loss
 - ✅ Support all major browser export formats
 - ✅ One-command Docker deployment
 
@@ -46,7 +45,7 @@
 **Deliverable**: Working containerized app that accepts file uploads
 
 ### Phase 2: AI Provider Integration (Weeks 3-4)
-**Goal**: Multi-provider AI system with cost tracking
+**Goal**: Multi-provider AI system
 
 #### Week 3: AI Provider Abstraction
 - [ ] AI provider interface definition
@@ -54,7 +53,6 @@
 - [ ] OpenAI GPT-4 API integration
 - [ ] Local Llama model setup (optional)
 - [ ] Provider configuration system
-- [ ] Cost calculation models per provider
 - [ ] Rate limiting implementation
 
 #### Week 4: Processing Pipeline
@@ -62,10 +60,9 @@
 - [ ] Content scraping with Puppeteer
 - [ ] AI summarization pipeline
 - [ ] Error handling and retry logic
-- [ ] Cost tracking and budget enforcement
 - [ ] WebSocket for real-time updates
 
-**Deliverable**: AI analysis working with cost control
+**Deliverable**: AI analysis working with multiple providers
 
 ### Phase 3: Web Interface (Weeks 5-6)
 **Goal**: Complete user interface for bookmark management
@@ -74,8 +71,6 @@
 - [ ] Upload page with drag-and-drop
 - [ ] AI provider configuration interface
 - [ ] Bookmark selection tree view
-- [ ] Cost estimation and budget controls
-- [ ] Real-time cost dashboard
 - [ ] Processing queue visualization
 
 #### Week 6: Management Interface

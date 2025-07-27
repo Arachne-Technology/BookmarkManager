@@ -43,14 +43,13 @@ BookmarkParser is an AI-powered containerized web application that analyzes brow
 **Priority**: Must Have
 
 ### 3.2 AI-Powered Content Analysis with Provider Selection
-**Description**: Generate intelligent summaries using configurable AI providers with cost control
-**User Story**: "As a user, I want to choose my AI provider and selectively process bookmarks so that I can control costs and API usage"
+**Description**: Generate intelligent summaries using configurable AI providers
+**User Story**: "As a user, I want to choose my AI provider and selectively process bookmarks so that I can control my API usage"
 
 **Acceptance Criteria**:
 - **Provider Selection**: Support multiple AI backends (Claude, OpenAI GPT-4, Local Llama)
 - **Default Configuration**: Anthropic Claude as default for non-technical users
 - **Selective Processing**: Choose individual bookmarks, folders, or all bookmarks
-- **Cost Estimation**: Display estimated costs before processing
 - **Batch Controls**: Process bookmarks in configurable batch sizes
 - **Rate Limiting**: Respect API limits with automatic throttling
 - **Progress Tracking**: Real-time processing status with pause/resume
@@ -69,12 +68,11 @@ BookmarkParser is an AI-powered containerized web application that analyzes brow
 - Display bookmark title, URL, folder, AI summary status, and metadata
 - **AI Processing Controls**: Checkboxes for selective AI analysis
 - **Provider Configuration**: Settings panel for AI backend selection
-- **Cost Dashboard**: Real-time cost tracking and estimates
 - Provide action buttons: Keep, Delete, Categorize, Mark for Review, Analyze
 - Real-time filtering and search functionality
 - Drag-and-drop categorization interface
 - Progress tracking with pause/resume capabilities
-- Batch selection and operations with cost preview
+- Batch selection and operations
 - Mobile-friendly responsive design
 
 **Priority**: Must Have
@@ -119,25 +117,7 @@ BookmarkParser is an AI-powered containerized web application that analyzes brow
 
 **Priority**: Must Have
 
-### 3.7 AI Cost Management & Control
-**Description**: Comprehensive cost control and budget management for AI processing
-**User Story**: "As a user, I want to control AI processing costs and stay within my budget so that I don't get unexpected API bills"
-
-**Acceptance Criteria**:
-- **Cost Calculator**: Real-time cost estimation based on selected bookmarks and provider
-- **Budget Controls**: Set spending limits with hard stops
-- **Usage Dashboard**: Track current session costs and historical usage
-- **Provider Comparison**: Show cost differences between AI providers
-- **Batch Size Control**: Adjust processing batch sizes to manage rate limits
-- **Processing Queue**: Queue management with priority and cost preview
-- **Free Tier Indicators**: Show free tier usage for supported providers
-- **Cost Alerts**: Notifications when approaching budget limits
-- **Processing History**: Log of all AI processing with associated costs
-- **Offline Mode**: Option to skip AI processing entirely for cost-conscious users
-
-**Priority**: Must Have
-
-### 3.8 Containerized Deployment
+### 3.7 Containerized Deployment
 **Description**: Docker-based deployment for easy setup and isolation
 **User Story**: "As a user, I want to run the application with a simple Docker command so that I don't need to install dependencies"
 
@@ -158,7 +138,6 @@ BookmarkParser is an AI-powered containerized web application that analyzes brow
 - Support collections up to 50,000 bookmarks
 - Respond to user inputs within 200ms during interactive sessions
 - **Multi-Provider Rate Limiting**: Respect different API limits per provider
-- **Cost-Aware Processing**: Optimize processing order to minimize costs
 - **Parallel Processing**: Handle multiple AI providers simultaneously
 - **Queue Management**: Efficient job queuing with priority handling
 
@@ -211,21 +190,19 @@ BookmarkParser is an AI-powered containerized web application that analyzes brow
 2. Upload Processing → File validation and parsing
 3. AI Provider Setup → Choose AI backend and configure API keys
 4. Processing Selection → Select bookmarks/folders for AI analysis
-5. Cost Review → Preview estimated costs and confirm
-6. Analysis Dashboard → Monitor AI analysis progress with cost tracking
-7. Bookmark Management → Interactive grid/list interface
-8. Cleanup Actions → Keep/delete/categorize decisions
-9. Export Results → Download cleaned bookmark file
+5. Analysis Dashboard → Monitor AI analysis progress
+6. Bookmark Management → Interactive grid/list interface
+7. Cleanup Actions → Keep/delete/categorize decisions
+8. Export Results → Download cleaned bookmark file
 ```
 
 ### 6.2 Web Interface Design
 1. **Upload Page**: Clean, modern file upload with drag-and-drop
 2. **AI Setup Page**: Provider selection with guided configuration
 3. **Selection Interface**: Tree view for choosing bookmarks/folders to process
-4. **Cost Dashboard**: Real-time cost tracking and budget controls
-5. **Management View**: Responsive grid with bookmark cards and AI status
-6. **Progress Tracking**: Real-time updates with pause/resume controls
-7. **Export Interface**: Download options with processing statistics
+4. **Management View**: Responsive grid with bookmark cards and AI status
+5. **Progress Tracking**: Real-time updates with pause/resume controls
+6. **Export Interface**: Download options with processing statistics
 
 ### 6.3 Deployment Instructions
 ```bash

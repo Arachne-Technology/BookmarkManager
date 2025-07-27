@@ -81,17 +81,17 @@ User → Provider Selection → API Key Configuration → Provider Validation �
 
 ### 3. Selective Processing Setup
 ```
-Bookmark Tree → User Selection → Cost Estimation → Budget Check → Queue Creation
+Bookmark Tree → User Selection → Queue Creation
 ```
 
 ### 4. AI Analysis Pipeline
 ```
-Queue Job → Provider Router → Rate Limiter → Content Fetcher → AI Provider → Cost Tracker → Cache → Database
+Queue Job → Provider Router → Rate Limiter → Content Fetcher → AI Provider → Cache → Database
 ```
 
 ### 5. Real-time Updates
 ```
-WebSocket → Progress Updates → Cost Updates → Queue Status → Frontend Dashboard
+WebSocket → Progress Updates → Queue Status → Frontend Dashboard
 ```
 
 ### 6. Interactive Management
@@ -116,9 +116,7 @@ sessions (
   file_name: VARCHAR,
   original_count: INTEGER,
   processed_count: INTEGER,
-  selected_provider: VARCHAR DEFAULT 'claude',
-  budget_limit: DECIMAL(10,4) DEFAULT 10.00,
-  current_cost: DECIMAL(10,4) DEFAULT 0.00
+  selected_provider: VARCHAR DEFAULT 'claude'
 )
 
 -- AI provider configurations per session
@@ -129,7 +127,6 @@ provider_configs (
   api_key_hash: VARCHAR, -- encrypted storage
   is_active: BOOLEAN DEFAULT false,
   rate_limit: INTEGER DEFAULT 60, -- requests per minute
-  cost_per_token: DECIMAL(8,6),
   created_at: TIMESTAMP
 )
 
@@ -144,7 +141,6 @@ bookmarks (
   status: ENUM('pending', 'selected', 'queued', 'analyzing', 'analyzed', 'error', 'skipped'),
   is_accessible: BOOLEAN,
   selected_for_analysis: BOOLEAN DEFAULT false,
-  estimated_cost: DECIMAL(6,4),
   created_at: TIMESTAMP,
   updated_at: TIMESTAMP
 )
@@ -158,7 +154,6 @@ summaries (
   content_type: VARCHAR,
   word_count: INTEGER,
   token_count: INTEGER,
-  actual_cost: DECIMAL(6,4),
   analysis_duration: INTEGER,
   model_version: VARCHAR,
   created_at: TIMESTAMP
@@ -182,8 +177,6 @@ processing_jobs (
   provider: VARCHAR NOT NULL,
   status: ENUM('queued', 'processing', 'completed', 'failed', 'cancelled'),
   priority: INTEGER DEFAULT 5,
-  estimated_cost: DECIMAL(6,4),
-  actual_cost: DECIMAL(6,4),
   started_at: TIMESTAMP,
   completed_at: TIMESTAMP,
   error_message: TEXT
@@ -195,7 +188,7 @@ processing_jobs (
 ### Core Operations
 ```
 POST   /api/upload              # Upload bookmark HTML file
-GET    /api/sessions/:id        # Get session details with cost tracking
+GET    /api/sessions/:id        # Get session details
 POST   /api/sessions/:id/analyze # Start selective analysis process
 GET    /api/bookmarks           # List bookmarks with filters and AI status
 PUT    /api/bookmarks/:id       # Update bookmark status/category
@@ -211,19 +204,9 @@ POST   /api/providers/config    # Configure AI provider for session
 PUT    /api/providers/:id       # Update provider configuration
 DELETE /api/providers/:id       # Remove provider configuration
 POST   /api/providers/test      # Test provider connection
-GET    /api/providers/pricing   # Get current pricing information
 ```
 
-### Cost Management & Selection
-```
-POST   /api/bookmarks/select    # Select bookmarks for AI processing
-POST   /api/cost/estimate       # Estimate processing costs
-GET    /api/cost/tracking       # Get real-time cost tracking
-POST   /api/cost/budget         # Set session budget limits
-GET    /api/cost/history        # Get cost history and usage
-```
-
-### Queue & Processing Management
+### Selection & Processing Management
 ```
 POST   /api/queue/submit        # Submit selected bookmarks for processing
 GET    /api/queue/status        # Get queue status and progress
@@ -235,8 +218,8 @@ PUT    /api/queue/:jobId/priority # Change job priority
 
 ### Analysis & Management
 ```
-GET    /api/sessions/:id/stats  # Get analysis and cost statistics
-POST   /api/bookmarks/batch     # Batch operations with cost preview
+GET    /api/sessions/:id/stats  # Get analysis statistics
+POST   /api/bookmarks/batch     # Batch operations
 GET    /api/summaries/:id       # Get AI summary details with provider info
 POST   /api/analyze/retry       # Retry failed analyses
 GET    /api/analyze/progress    # Real-time analysis progress via WebSocket
