@@ -1,27 +1,26 @@
-# BookmarkParser
+# BookmarkParser - Phase 1 MVP
 
-AI-powered containerized web application for analyzing and cleaning up browser bookmark collections with intelligent summaries and cost-controlled processing.
+Containerized web application for organizing and managing browser bookmark collections with a modern web interface.
 
 ## Overview
 
-BookmarkParser helps users efficiently clean up messy bookmark collections by providing AI-generated summaries and an intuitive web interface for bookmark management. Upload your browser bookmarks, select what to analyze, control AI processing costs, and download a cleaned collection.
+BookmarkParser helps users efficiently organize their bookmark collections through an intuitive web interface. Upload your browser bookmarks, review them in an organized display, and download a cleaned collection. Phase 1 focuses on core functionality with AI features planned for Phase 2.
 
-### Key Features
+### Current Features (Phase 1)
 
-- **Multi-Browser Support** - Import from Chrome, Firefox, Safari, Edge
-- **Multi-AI Provider** - Choose between Claude, OpenAI GPT-4, or local Llama models
-- **Cost Control** - Real-time cost tracking, budgets, and selective processing
-- **Modern Web UI** - Responsive interface with drag-and-drop upload
-- **Batch Operations** - Bulk delete broken links, merge duplicates
-- **Containerized** - One-command Docker deployment
-- **Privacy-First** - Local processing with optional cloud AI
+- **Multi-Browser Support** - Import from Chrome, Firefox, Safari, Edge HTML exports
+- **Modern Web UI** - Responsive React interface with drag-and-drop upload
+- **Bookmark Management** - View and organize bookmarks in structured display
+- **Export Functionality** - Download cleaned HTML bookmark files
+- **Containerized** - One-command Docker deployment with PostgreSQL and Redis
+- **Session Management** - Temporary sessions for bookmark processing
 
 ## Quick Start
 
 ### Prerequisites
 
 - Docker and Docker Compose
-- At least one AI provider API key (Claude recommended)
+- Git
 
 ### Installation
 
@@ -31,29 +30,23 @@ BookmarkParser helps users efficiently clean up messy bookmark collections by pr
    cd BookmarkParser
    ```
 
-2. **Configure environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your AI provider API keys
-   ```
-
-3. **Start the application**
+2. **Start the application**
    ```bash
    docker-compose up -d
    ```
 
-4. **Access the web interface**
+3. **Access the web interface**
    ```
-   http://localhost:3000
+   Frontend: http://localhost:3000
+   Backend API: http://localhost:3001
    ```
 
 ### Basic Usage
 
-1. **Upload** your browser bookmark export file
-2. **Configure** AI provider and budget settings
-3. **Select** bookmarks or folders for analysis
-4. **Review** AI-generated summaries and make decisions
-5. **Export** your cleaned bookmark collection
+1. **Upload** your browser bookmark export file via drag-and-drop
+2. **Review** your bookmarks in the organized interface
+3. **Browse** bookmarks by folder structure
+4. **Export** your cleaned bookmark collection as HTML
 
 ## Development
 
