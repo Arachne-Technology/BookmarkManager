@@ -12,6 +12,10 @@ build/
 *.tmp
 *.log
 
+# User uploads
+uploads/
+backend/uploads/
+
 # IDE files
 .vscode/
 .idea/
