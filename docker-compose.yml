@@ -1,9 +1,8 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: bookmark_user
       POSTGRES_PASSWORD: bookmark_pass
@@ -22,6 +21,7 @@ services:
   # Redis Cache & Queue
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
@@ -37,14 +37,17 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
+    restart: unless-stopped
     ports:
       - "3001:3001"
+    env_file:
+      - .env
     environment:
       NODE_ENV: development
       PORT: 3001
       DATABASE_URL: postgresql://bookmark_user:bookmark_pass@postgres:5432/bookmark_parser
       REDIS_URL: redis://redis:6379
-      FRONTEND_URL: http://localhost:3000
+      FRONTEND_URL: http://frontend:3000
       UPLOAD_LIMIT: 10mb
       LOG_LEVEL: debug
     volumes:
@@ -68,8 +71,11 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
+    restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       VITE_API_URL: http://localhost:3001
       VITE_NODE_ENV: development
