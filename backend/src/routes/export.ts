@@ -53,9 +53,11 @@ router.post('/', async (req, res, next) => {
     res.send(html);
     
     logger.info(`Exported ${bookmarks.length} bookmarks for session ${sessionId}`);
+    return;
     
   } catch (error) {
     next(error);
+    return;
   }
 });
 

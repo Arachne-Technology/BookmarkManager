@@ -18,8 +18,8 @@ export async function parseBookmarkFile(filePath: string): Promise<ParsedBookmar
     const $ = cheerio.load(htmlContent);
     const bookmarks: ParsedBookmark[] = [];
     
-    function traverseBookmarks($element: cheerio.Cheerio<cheerio.Element>, currentPath: string = '') {
-      $element.children().each((index, element) => {
+    function traverseBookmarks($element: cheerio.Cheerio<any>, currentPath: string = '') {
+      $element.children().each((_, element) => {
         const $el = $(element);
         
         if ($el.is('dt')) {
@@ -33,13 +33,21 @@ export async function parseBookmarkFile(filePath: string): Promise<ParsedBookmar
             const icon = $link.attr('icon');
             
             if (href && title) {
-              bookmarks.push({
+              const bookmark: ParsedBookmark = {
                 title,
                 url: href,
-                folderPath: currentPath,
-                addDate: addDate ? parseInt(addDate) : undefined,
-                icon
-              });
+                folderPath: currentPath
+              };
+              
+              if (addDate) {
+                bookmark.addDate = parseInt(addDate);
+              }
+              
+              if (icon) {
+                bookmark.icon = icon;
+              }
+              
+              bookmarks.push(bookmark);
             }
           } else if ($folder.length > 0) {
             const folderName = $folder.text().trim();

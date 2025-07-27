@@ -22,7 +22,7 @@ app.use(cors({
 app.use(express.json({ limit: process.env.UPLOAD_LIMIT || '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: process.env.UPLOAD_LIMIT || '10mb' }));
 
-app.get('/health', (req, res) => {
+app.get('/health', (_, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),

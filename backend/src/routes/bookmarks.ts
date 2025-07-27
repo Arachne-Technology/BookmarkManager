@@ -1,9 +1,6 @@
 import { Router } from 'express';
 import { getDatabase } from '../utils/database';
-import { setupLogger } from '../utils/logger';
-
 const router = Router();
-const logger = setupLogger();
 
 router.get('/', async (req, res, next) => {
   try {
@@ -35,8 +32,10 @@ router.get('/', async (req, res, next) => {
       limit: parseInt(limit as string),
       offset: parseInt(offset as string)
     });
+    return;
   } catch (error) {
     next(error);
+    return;
   }
 });
 
@@ -56,8 +55,10 @@ router.put('/:id', async (req, res, next) => {
     }
     
     res.json(result.rows[0]);
+    return;
   } catch (error) {
     next(error);
+    return;
   }
 });
 

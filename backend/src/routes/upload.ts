@@ -10,10 +10,10 @@ const router = Router();
 const logger = setupLogger();
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (_, __, cb) => {
     cb(null, 'uploads/');
   },
-  filename: (req, file, cb) => {
+  filename: (_, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
@@ -24,7 +24,7 @@ const upload = multer({
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (_, file, cb) => {
     if (file.mimetype === 'text/html' || file.originalname.endsWith('.html')) {
       cb(null, true);
     } else {
@@ -45,7 +45,7 @@ router.post('/', upload.single('bookmarkFile'), async (req, res, next) => {
     await db.query('BEGIN');
 
     try {
-      const session = await db.query(
+      await db.query(
         'INSERT INTO sessions (id, file_name, status) VALUES ($1, $2, $3) RETURNING *',
         [sessionId, req.file.originalname, 'processing']
       );
@@ -53,7 +53,7 @@ router.post('/', upload.single('bookmarkFile'), async (req, res, next) => {
       const bookmarks = await parseBookmarkFile(req.file.path);
       
       for (let i = 0; i < bookmarks.length; i++) {
-        const bookmark = bookmarks[i];
+        const bookmark = bookmarks[i]!;
         await db.query(
           'INSERT INTO bookmarks (session_id, title, url, folder_path, original_index) VALUES ($1, $2, $3, $4, $5)',
           [sessionId, bookmark.title, bookmark.url, bookmark.folderPath, i]
@@ -74,6 +74,7 @@ router.post('/', upload.single('bookmarkFile'), async (req, res, next) => {
         message: 'File uploaded and parsed successfully',
         bookmarksCount: bookmarks.length
       });
+      return;
 
     } catch (error) {
       await db.query('ROLLBACK');
@@ -82,6 +83,7 @@ router.post('/', upload.single('bookmarkFile'), async (req, res, next) => {
 
   } catch (error) {
     next(error);
+    return;
   }
 });
 

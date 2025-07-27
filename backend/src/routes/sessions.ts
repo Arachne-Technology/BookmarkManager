@@ -1,9 +1,6 @@
 import { Router } from 'express';
 import { getDatabase } from '../utils/database';
-import { setupLogger } from '../utils/logger';
-
 const router = Router();
-const logger = setupLogger();
 
 router.get('/:id', async (req, res, next) => {
   try {
@@ -20,8 +17,10 @@ router.get('/:id', async (req, res, next) => {
     }
     
     res.json(result.rows[0]);
+    return;
   } catch (error) {
     next(error);
+    return;
   }
 });
 
