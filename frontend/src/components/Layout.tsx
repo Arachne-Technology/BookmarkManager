@@ -1,6 +1,7 @@
 // Import React types and UI components
 import type { ReactNode } from 'react'
 import { BookOpen } from 'lucide-react' // Book icon for the application logo
+// Layout component provides consistent application shell
 
 /**
  * Props interface for the Layout component

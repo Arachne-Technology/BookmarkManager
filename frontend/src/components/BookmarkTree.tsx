@@ -1,9 +1,12 @@
 import React, { useState, useMemo } from 'react'
-import { ChevronDown, ChevronRight, ExternalLink, Folder, FolderOpen, Bookmark as BookmarkIcon } from 'lucide-react'
+import { ChevronDown, ChevronRight, ExternalLink, Folder, FolderOpen, Bookmark as BookmarkIcon, Check, Minus } from 'lucide-react'
 import { Bookmark } from '../services/api'
+import { useSelection } from '../hooks/useSelection'
 
 interface BookmarkTreeProps {
   bookmarks: Bookmark[]
+  onSelectionChange?: (selectedBookmarks: Bookmark[]) => void
+  onBookmarkClick?: (bookmark: Bookmark) => void
 }
 
 interface TreeNode {
@@ -15,8 +18,16 @@ interface TreeNode {
   isExpanded?: boolean
 }
 
-export function BookmarkTree({ bookmarks }: BookmarkTreeProps) {
+export function BookmarkTree({ bookmarks, onSelectionChange, onBookmarkClick }: BookmarkTreeProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['']))
+  const selection = useSelection(bookmarks)
+
+  // Notify parent of selection changes
+  React.useEffect(() => {
+    if (onSelectionChange) {
+      onSelectionChange(selection.getSelectedBookmarks())
+    }
+  }, [selection.selectedBookmarks, onSelectionChange])
 
   const { tree, folderPaths } = useMemo(() => {
     const root: TreeNode = { name: 'Root', path: '', type: 'folder', children: [] }
@@ -39,8 +50,7 @@ export function BookmarkTree({ bookmarks }: BookmarkTreeProps) {
       let currentPath = ''
       let currentParent = root
 
-      pathParts.forEach((part, index) => {
-        const previousPath = currentPath
+      pathParts.forEach((part) => {
         currentPath = currentPath ? `${currentPath}/${part}` : part
         
         if (!folderMap.has(currentPath)) {
@@ -96,6 +106,9 @@ export function BookmarkTree({ bookmarks }: BookmarkTreeProps) {
           bookmark={node.bookmark!}
           depth={depth}
           isEvenRow={currentIndex % 2 === 0}
+          isSelected={selection.isBookmarkSelected(node.bookmark!.id)}
+          onToggleSelect={() => selection.toggleBookmark(node.bookmark!.id)}
+          onBookmarkClick={onBookmarkClick}
         />
       )
     }
@@ -118,6 +131,9 @@ export function BookmarkTree({ bookmarks }: BookmarkTreeProps) {
           hasChildren={hasChildren}
           depth={depth}
           onToggle={() => toggleFolder(node.path)}
+          isSelected={selection.isFolderSelected(node.path)}
+          isPartiallySelected={selection.isFolderPartiallySelected(node.path)}
+          onToggleSelect={() => selection.toggleFolder(node.path)}
         />
         {isExpanded && hasChildren && (
           <div>
@@ -143,6 +159,22 @@ export function BookmarkTree({ bookmarks }: BookmarkTreeProps) {
           Bookmarks ({bookmarks.length})
         </h3>
         <div className="flex space-x-2">
+          <div className="flex items-center space-x-2 mr-4">
+            <button
+              onClick={selection.selectAll}
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              Select All ({bookmarks.length})
+            </button>
+            {selection.selectedCount > 0 && (
+              <button
+                onClick={selection.clearSelection}
+                className="text-sm text-gray-600 hover:text-gray-800"
+              >
+                Clear ({selection.selectedCount})
+              </button>
+            )}
+          </div>
           <button
             onClick={() => setExpandedFolders(new Set(['']))}
             className="text-sm text-gray-600 hover:text-gray-800"
@@ -169,35 +201,60 @@ interface FolderItemProps {
   hasChildren: boolean
   depth: number
   onToggle: () => void
+  isSelected: boolean
+  isPartiallySelected: boolean
+  onToggleSelect: () => void
 }
 
-function FolderItem({ name, isExpanded, hasChildren, depth, onToggle }: FolderItemProps) {
+function FolderItem({ 
+  name, 
+  isExpanded, 
+  hasChildren, 
+  depth, 
+  onToggle, 
+  isSelected, 
+  isPartiallySelected, 
+  onToggleSelect 
+}: FolderItemProps) {
   return (
     <div 
-      className="flex items-center py-1 px-2 hover:bg-gray-50 cursor-pointer rounded"
+      className="flex items-center py-1 px-2 hover:bg-gray-50 rounded group"
       style={{ paddingLeft: `${depth * 20 + 8}px` }}
-      onClick={onToggle}
     >
       <div className="flex items-center space-x-2 flex-1">
-        {hasChildren ? (
-          isExpanded ? (
-            <ChevronDown className="h-4 w-4 text-gray-400" />
+        {/* Checkbox */}
+        <div
+          className="w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors"
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleSelect()
+          }}
+        >
+          {isSelected && <Check className="h-3 w-3 text-blue-600" />}
+          {isPartiallySelected && !isSelected && <Minus className="h-3 w-3 text-blue-600" />}
+        </div>
+
+        <div className="flex items-center space-x-2 flex-1 cursor-pointer" onClick={onToggle}>
+          {hasChildren ? (
+            isExpanded ? (
+              <ChevronDown className="h-4 w-4 text-gray-400" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-gray-400" />
+            )
           ) : (
-            <ChevronRight className="h-4 w-4 text-gray-400" />
-          )
-        ) : (
-          <div className="w-4" />
-        )}
-        
-        {isExpanded ? (
-          <FolderOpen className="h-4 w-4 text-blue-500" />
-        ) : (
-          <Folder className="h-4 w-4 text-blue-500" />
-        )}
-        
-        <span className="text-sm font-medium text-gray-700 select-none">
-          {name}
-        </span>
+            <div className="w-4" />
+          )}
+          
+          {isExpanded ? (
+            <FolderOpen className="h-4 w-4 text-blue-500" />
+          ) : (
+            <Folder className="h-4 w-4 text-blue-500" />
+          )}
+          
+          <span className="text-sm font-medium text-gray-700 select-none">
+            {name}
+          </span>
+        </div>
       </div>
     </div>
   )
@@ -207,24 +264,41 @@ interface BookmarkItemProps {
   bookmark: Bookmark
   depth: number
   isEvenRow: boolean
+  isSelected: boolean
+  onToggleSelect: () => void
+  onBookmarkClick?: (bookmark: Bookmark) => void
 }
 
-function BookmarkItem({ bookmark, depth, isEvenRow }: BookmarkItemProps) {
+function BookmarkItem({ bookmark, depth, isEvenRow, isSelected, onToggleSelect, onBookmarkClick }: BookmarkItemProps) {
   return (
     <div 
       className={`flex items-center py-2 px-2 group transition-colors border-b border-gray-100 ${
         isEvenRow 
           ? 'bg-gray-50 hover:bg-gray-100' 
           : 'bg-white hover:bg-gray-50'
-      }`}
-      style={{ paddingLeft: `${depth * 20 + 28}px` }}
+      } ${isSelected ? 'ring-2 ring-blue-500 ring-opacity-30' : ''}`}
+      style={{ paddingLeft: `${depth * 20 + 8}px` }}
     >
       <div className="flex items-center space-x-2 flex-1 min-w-0">
+        {/* Checkbox */}
+        <div
+          className="w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors flex-shrink-0"
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleSelect()
+          }}
+        >
+          {isSelected && <Check className="h-3 w-3 text-blue-600" />}
+        </div>
+
         <BookmarkIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
         
-        <div className="flex-1 min-w-0">
+        <div 
+          className="flex-1 min-w-0 cursor-pointer"
+          onClick={() => onBookmarkClick?.(bookmark)}
+        >
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-900 truncate">
+            <span className="text-sm text-gray-900 truncate hover:text-blue-600 transition-colors">
               {bookmark.title || 'Untitled'}
             </span>
             <a 
@@ -237,9 +311,22 @@ function BookmarkItem({ bookmark, depth, isEvenRow }: BookmarkItemProps) {
             </a>
           </div>
           
-          <p className="text-xs text-gray-500 truncate">
-            {bookmark.url}
-          </p>
+          <div className="flex items-center space-x-2">
+            <p className="text-xs text-gray-500 truncate flex-1">
+              {bookmark.url}
+            </p>
+            {bookmark.ai_summary && (
+              <span className="text-xs text-green-600 font-medium">
+                AI Analyzed
+              </span>
+            )}
+          </div>
+          
+          {bookmark.ai_summary && (
+            <p className="text-xs text-gray-600 truncate mt-1">
+              {bookmark.ai_summary}
+            </p>
+          )}
         </div>
         
         <div className="flex items-center space-x-2 flex-shrink-0">
