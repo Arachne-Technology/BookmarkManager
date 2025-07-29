@@ -17,7 +17,7 @@ export function BookmarkPage() {
   
   const { data: bookmarksData, isLoading: bookmarksLoading } = useQuery(
     ['bookmarks', sessionId],
-    () => getBookmarks(sessionId!, { limit: 100 }),
+    () => getBookmarks(sessionId!),
     { enabled: !!sessionId }
   )
   

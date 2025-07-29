@@ -4,32 +4,44 @@ const router = Router();
 
 router.get('/', async (req, res, next) => {
   try {
-    const { sessionId, status, limit = '50', offset = '0' } = req.query;
+    const { sessionId, status, limit, offset = '0' } = req.query;
     const db = getDatabase();
     
-    let query = 'SELECT * FROM bookmarks WHERE 1=1';
+    let countQuery = 'SELECT COUNT(*) FROM bookmarks WHERE 1=1';
+    let dataQuery = 'SELECT * FROM bookmarks WHERE 1=1';
     const params: any[] = [];
     let paramCount = 0;
     
     if (sessionId) {
-      query += ` AND session_id = $${++paramCount}`;
+      countQuery += ` AND session_id = $${++paramCount}`;
+      dataQuery += ` AND session_id = $${paramCount}`;
       params.push(sessionId);
     }
     
     if (status) {
-      query += ` AND status = $${++paramCount}`;
+      countQuery += ` AND status = $${++paramCount}`;
+      dataQuery += ` AND status = $${paramCount}`;
       params.push(status);
     }
     
-    query += ` ORDER BY original_index ASC LIMIT $${++paramCount} OFFSET $${++paramCount}`;
-    params.push(limit, offset);
+    dataQuery += ` ORDER BY original_index ASC`;
+    let dataParams = [...params];
     
-    const result = await db.query(query, params);
+    // Only apply pagination if limit is explicitly provided and greater than 0
+    if (limit && parseInt(limit as string) > 0) {
+      dataQuery += ` LIMIT $${++paramCount} OFFSET $${++paramCount}`;
+      dataParams.push(limit, offset);
+    }
+    
+    const [countResult, dataResult] = await Promise.all([
+      db.query(countQuery, params),
+      db.query(dataQuery, dataParams)
+    ]);
     
     res.json({
-      bookmarks: result.rows,
-      total: result.rowCount,
-      limit: parseInt(limit as string),
+      bookmarks: dataResult.rows,
+      total: parseInt(countResult.rows[0].count),
+      limit: limit ? parseInt(limit as string) : null,
       offset: parseInt(offset as string)
     });
     return;

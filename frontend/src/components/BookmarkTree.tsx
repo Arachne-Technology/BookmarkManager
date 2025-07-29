@@ -142,12 +142,20 @@ export function BookmarkTree({ bookmarks }: BookmarkTreeProps) {
         <h3 className="text-lg font-medium text-gray-900">
           Bookmarks ({bookmarks.length})
         </h3>
-        <button
-          onClick={() => setExpandedFolders(new Set(folderPaths))}
-          className="text-sm text-blue-600 hover:text-blue-800"
-        >
-          Expand All
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setExpandedFolders(new Set(['']))}
+            className="text-sm text-gray-600 hover:text-gray-800"
+          >
+            Close All
+          </button>
+          <button
+            onClick={() => setExpandedFolders(new Set(folderPaths))}
+            className="text-sm text-blue-600 hover:text-blue-800"
+          >
+            Expand All
+          </button>
+        </div>
       </div>
       {renderNode(tree, 0, { current: 0 })}
     </div>
