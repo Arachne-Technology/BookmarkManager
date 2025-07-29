@@ -1,4 +1,4 @@
-import React from 'react'
+// Component for exporting processed bookmarks
 import { Download } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { exportBookmarks } from '../services/api'

@@ -1,4 +1,4 @@
-import React from 'react'
+// Loading spinner component for async operations
 import { Loader2 } from 'lucide-react'
 
 export function LoadingSpinner() {

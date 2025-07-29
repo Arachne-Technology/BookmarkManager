@@ -1,4 +1,4 @@
-import React from 'react'
+// Component for displaying bookmarks in a grid layout
 import { ExternalLink, Folder } from 'lucide-react'
 import { Bookmark } from '../services/api'
 

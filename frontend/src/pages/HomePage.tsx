@@ -1,4 +1,4 @@
-import React from 'react'
+// Home page component with file upload interface
 import { FileUpload } from '../components/FileUpload'
 
 export function HomePage() {

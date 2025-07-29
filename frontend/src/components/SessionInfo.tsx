@@ -1,4 +1,4 @@
-import React from 'react'
+// Component for displaying session information and metadata
 import { Calendar, FileText, Hash } from 'lucide-react'
 import { Session } from '../services/api'
 import { ExportButton } from './ExportButton'

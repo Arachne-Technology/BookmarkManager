@@ -1,96 +1,113 @@
+# Docker Compose configuration for BookmarkParser development environment
+# This file defines all services needed to run the application locally
+
 services:
-  # PostgreSQL Database
+  # PostgreSQL Database - stores parsed bookmarks and session data
   postgres:
-    image: postgres:15-alpine
-    restart: unless-stopped
+    image: postgres:15-alpine  # Use lightweight Alpine Linux version
+    restart: unless-stopped    # Restart container automatically unless manually stopped
     environment:
+      # Database credentials and initial database creation
       POSTGRES_USER: bookmark_user
       POSTGRES_PASSWORD: bookmark_pass
       POSTGRES_DB: bookmark_parser
     ports:
-      - "5432:5432"
+      - "5432:5432"  # Expose PostgreSQL on standard port for external access
     volumes:
+      # Persistent storage for database data
       - postgres_data:/var/lib/postgresql/data
+      # Initialize database schema on first startup
       - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
+      # Check if PostgreSQL is ready to accept connections
       test: ["CMD-SHELL", "pg_isready -U bookmark_user -d bookmark_parser"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 10s   # Check every 10 seconds
+      timeout: 5s     # Fail after 5 seconds
+      retries: 5      # Retry up to 5 times
 
-  # Redis Cache & Queue
+  # Redis Cache & Queue - used for session storage and future job queue implementation
   redis:
-    image: redis:7-alpine
-    restart: unless-stopped
+    image: redis:7-alpine      # Use lightweight Alpine Linux version
+    restart: unless-stopped    # Restart container automatically unless manually stopped
     ports:
-      - "6379:6379"
+      - "6379:6379"  # Expose Redis on standard port
     volumes:
-      - redis_data:/data
+      - redis_data:/data  # Persistent storage for Redis data
     healthcheck:
+      # Check if Redis is responding to ping commands
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
+      interval: 10s   # Check every 10 seconds
+      timeout: 3s     # Fail after 3 seconds
+      retries: 5      # Retry up to 5 times
 
-  # Backend API
+  # Backend API - Node.js/Express server handling file uploads and bookmark parsing
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
+      context: ./backend           # Build context for Docker image
+      dockerfile: Dockerfile.dev   # Use development Dockerfile with hot reload
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "3001:3001"  # Expose API server on port 3001
     env_file:
-      - .env
+      - .env  # Load additional environment variables from .env file
     environment:
+      # Development environment configuration
       NODE_ENV: development
       PORT: 3001
+      # Database connection string using service names (Docker networking)
       DATABASE_URL: postgresql://bookmark_user:bookmark_pass@postgres:5432/bookmark_parser
       REDIS_URL: redis://redis:6379
-      FRONTEND_URL: http://frontend:3000
-      UPLOAD_LIMIT: 10mb
-      LOG_LEVEL: debug
+      FRONTEND_URL: http://frontend:3000  # For CORS configuration
+      UPLOAD_LIMIT: 10mb                  # Maximum file upload size
+      LOG_LEVEL: debug                    # Verbose logging for development
     volumes:
+      # Mount source code for hot reload during development
       - ./backend:/app
-      - /app/node_modules
-      - ./backend/uploads:/app/uploads
+      - /app/node_modules              # Prevent node_modules override
+      - ./backend/uploads:/app/uploads # Persistent upload directory
     depends_on:
+      # Wait for database and Redis to be healthy before starting
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: npm run dev
+    command: npm run dev  # Run development server with file watching
     healthcheck:
+      # Check if API server is responding
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: 30s   # Check every 30 seconds
+      timeout: 10s    # Fail after 10 seconds
+      retries: 3      # Retry up to 3 times
 
-  # Frontend React App
+  # Frontend React App - user interface for bookmark management
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
+      context: ./frontend           # Build context for Docker image
+      dockerfile: Dockerfile.dev    # Use development Dockerfile with hot reload
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3000:3000"  # Expose React development server on port 3000
     env_file:
-      - .env
+      - .env  # Load additional environment variables from .env file
     environment:
-      VITE_API_URL: http://localhost:3001
-      VITE_NODE_ENV: development
+      # Vite configuration for React development
+      VITE_API_URL: http://localhost:3001  # Backend API URL for frontend API calls
+      VITE_NODE_ENV: development           # Development mode configuration
     volumes:
+      # Mount source code for hot reload during development
       - ./frontend:/app
-      - /app/node_modules
+      - /app/node_modules  # Prevent node_modules override
     depends_on:
-      - backend
-    command: npm run dev
+      - backend  # Start after backend service is running
+    command: npm run dev  # Run Vite development server with hot reload
     healthcheck:
+      # Check if React development server is responding
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: 30s   # Check every 30 seconds
+      timeout: 10s    # Fail after 10 seconds
+      retries: 3      # Retry up to 3 times
 
+# Named volumes for persistent data storage
 volumes:
-  postgres_data:
-  redis_data:
+  postgres_data:  # PostgreSQL database files
+  redis_data:     # Redis data files

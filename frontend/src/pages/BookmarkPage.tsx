@@ -1,4 +1,4 @@
-import React from 'react'
+// Page component for managing bookmarks in a specific session
 import { useParams } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { getSession, getBookmarks } from '../services/api'
