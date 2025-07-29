@@ -2,7 +2,7 @@
 import { useParams } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { getSession, getBookmarks } from '../services/api'
-import { BookmarkGrid } from '../components/BookmarkGrid'
+import { BookmarkTree } from '../components/BookmarkTree'
 import { SessionInfo } from '../components/SessionInfo'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 
@@ -36,7 +36,7 @@ export function BookmarkPage() {
   return (
     <div className="space-y-6">
       <SessionInfo session={session} />
-      <BookmarkGrid bookmarks={bookmarksData.bookmarks} />
+      <BookmarkTree bookmarks={bookmarksData.bookmarks} />
     </div>
   )
 }
