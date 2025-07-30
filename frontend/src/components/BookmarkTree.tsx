@@ -79,7 +79,7 @@ export function BookmarkTree({ bookmarks, onSelectionChange, onBookmarkClick }: 
       // Add bookmark to the appropriate folder
       const bookmarkNode: TreeNode = {
         name: bookmark.title || 'Untitled',
-        path: `${folderPath}/${bookmark.title}`,
+        path: `${folderPath}/${bookmark.id}`,
         type: 'bookmark',
         bookmark,
         children: [],
