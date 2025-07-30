@@ -27,7 +27,9 @@ export function BookmarkPage() {
   } = useQuery({
     queryKey: ['bookmarks', sessionId],
     queryFn: () => getBookmarks(sessionId!),
-    enabled: !!sessionId
+    enabled: !!sessionId,
+    refetchInterval: 3000, // Poll every 3 seconds to catch AI updates
+    refetchIntervalInBackground: true
   });
 
   if (sessionLoading || bookmarksLoading) {

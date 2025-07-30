@@ -1,5 +1,5 @@
 import { BaseAIProvider } from '../BaseAIProvider';
-import type { AIProviderConfig, AISummaryResult } from '../types';
+import type { AIProviderConfig, AISummaryResult, ContentSufficiencyResult } from '../types';
 
 export class ClaudeProvider extends BaseAIProvider {
   private static readonly API_URL = 'https://api.anthropic.com/v1/messages';
@@ -138,6 +138,63 @@ export class ClaudeProvider extends BaseAIProvider {
     } catch (error) {
       console.error('Claude summarization error:', error);
       return this.createErrorResult(error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
+  async assessContentSufficiency(content: string, url: string, title?: string): Promise<ContentSufficiencyResult> {
+    if (!this.isConfigured()) {
+      // Fallback to simple heuristic if AI is not available
+      const totalLength = content.length + (title?.length || 0);
+      return {
+        isSufficient: totalLength > 200,
+        confidence: 0.6,
+        reason: 'Heuristic assessment - Claude API not configured',
+        suggestedAction: totalLength > 500 ? 'use_current' : 'fetch_more',
+      };
+    }
+
+    try {
+      const prompt = this.createSufficiencyPrompt(content, url, title);
+
+      const response = await fetch(ClaudeProvider.API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.config.apiKey!,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: this.config.model || 'claude-3-5-haiku-20241022',
+          max_tokens: 200, // Small response for assessment
+          temperature: 0.3, // Lower temperature for more consistent assessment
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Claude API error: ${response.status}`);
+      }
+
+      const data = (await response.json()) as any;
+      const aiResponse = data.content?.[0]?.text || '';
+
+      return this.parseSufficiencyResponse(aiResponse, content, title);
+    } catch (error) {
+      console.error('Claude content sufficiency assessment failed:', error);
+      
+      // Fallback to heuristic assessment
+      const totalLength = content.length + (title?.length || 0);
+      return {
+        isSufficient: totalLength > 200,
+        confidence: 0.5,
+        reason: `AI assessment failed: ${error instanceof Error ? error.message : 'Unknown error'}. Using fallback heuristic.`,
+        suggestedAction: totalLength > 500 ? 'use_current' : 'fetch_more',
+      };
     }
   }
 }

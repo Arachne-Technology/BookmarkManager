@@ -1,6 +1,7 @@
 export interface AIProvider {
   name: string;
   summarize(content: string, url: string, title?: string): Promise<AISummaryResult>;
+  assessContentSufficiency(content: string, url: string, title?: string): Promise<ContentSufficiencyResult>;
   isConfigured(): boolean;
   validateConfig(): Promise<boolean>;
 }
@@ -45,4 +46,11 @@ export interface WebPageContent {
   metaDescription?: string;
   screenshot?: Buffer;
   error?: string;
+}
+
+export interface ContentSufficiencyResult {
+  isSufficient: boolean;
+  confidence: number;
+  reason: string;
+  suggestedAction: 'use_current' | 'fetch_more' | 'metadata_only';
 }

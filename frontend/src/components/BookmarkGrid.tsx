@@ -68,10 +68,12 @@ function BookmarkCard({ bookmark }: BookmarkCardProps) {
             className={`px-2 py-1 text-xs rounded-full ${
               bookmark.status === 'pending'
                 ? 'bg-gray-100 text-gray-700'
-                : 'bg-green-100 text-green-700'
+                : bookmark.status === 'ai_analyzed'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-blue-100 text-blue-700'
             }`}
           >
-            {bookmark.status}
+            {bookmark.status === 'ai_analyzed' ? 'AI Analyzed' : bookmark.status}
           </span>
         </div>
       </div>

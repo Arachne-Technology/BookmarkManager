@@ -7,10 +7,13 @@ const router = Router();
 // Get configured AI providers
 router.get('/providers', async (_req, res, next) => {
   try {
+    console.log('[AI Routes] GET /providers called');
     const providers = aiService.getConfiguredProviders();
+    console.log('[AI Routes] Configured providers:', providers);
     res.json({ providers });
     return;
   } catch (error) {
+    console.error('[AI Routes] Error in GET /providers:', error);
     next(error);
     return;
   }
@@ -45,21 +48,28 @@ router.post('/providers/configure', async (req, res, next) => {
 // Process selected bookmarks with AI
 router.post('/process', async (req, res, next) => {
   try {
+    console.log('[AI Routes] POST /process called with body:', req.body);
     const { bookmarkIds, provider } = req.body;
 
     if (!Array.isArray(bookmarkIds) || bookmarkIds.length === 0) {
+      console.error('[AI Routes] Invalid bookmarkIds:', bookmarkIds);
       return res.status(400).json({ error: 'bookmarkIds must be a non-empty array' });
     }
 
+    console.log(`[AI Routes] Processing ${bookmarkIds.length} bookmarks with provider: ${provider}`);
+
     const jobIds = [];
     for (const bookmarkId of bookmarkIds) {
+      console.log(`[AI Routes] Processing bookmark ID: ${bookmarkId}`);
       const jobId = await aiService.processBookmark(bookmarkId, provider);
       jobIds.push(jobId);
     }
 
+    console.log(`[AI Routes] Created ${jobIds.length} jobs:`, jobIds);
     res.json({ jobIds, message: `Started processing ${bookmarkIds.length} bookmarks` });
     return;
   } catch (error) {
+    console.error('[AI Routes] Error in /process:', error);
     next(error);
     return;
   }

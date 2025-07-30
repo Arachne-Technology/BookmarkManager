@@ -1,5 +1,5 @@
 import { BaseAIProvider } from '../BaseAIProvider';
-import type { AIProviderConfig, AISummaryResult } from '../types';
+import type { AIProviderConfig, AISummaryResult, ContentSufficiencyResult } from '../types';
 
 export class OpenAIProvider extends BaseAIProvider {
   private static readonly API_URL = 'https://api.openai.com/v1/chat/completions';
@@ -147,6 +147,66 @@ export class OpenAIProvider extends BaseAIProvider {
     } catch (error) {
       console.error('OpenAI summarization error:', error);
       return this.createErrorResult(error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
+  async assessContentSufficiency(content: string, url: string, title?: string): Promise<ContentSufficiencyResult> {
+    if (!this.isConfigured()) {
+      // Fallback to simple heuristic if AI is not available
+      const totalLength = content.length + (title?.length || 0);
+      return {
+        isSufficient: totalLength > 200,
+        confidence: 0.6,
+        reason: 'Heuristic assessment - OpenAI API not configured',
+        suggestedAction: totalLength > 500 ? 'use_current' : 'fetch_more',
+      };
+    }
+
+    try {
+      const prompt = this.createSufficiencyPrompt(content, url, title);
+
+      const response = await fetch(OpenAIProvider.API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.config.apiKey!}`,
+        },
+        body: JSON.stringify({
+          model: this.config.model || 'gpt-3.5-turbo',
+          max_tokens: 200, // Small response for assessment
+          temperature: 0.3, // Lower temperature for more consistent assessment
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a helpful assistant that assesses content sufficiency for bookmark analysis. Always respond in valid JSON format.',
+            },
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status}`);
+      }
+
+      const data = (await response.json()) as any;
+      const aiResponse = data.choices?.[0]?.message?.content || '';
+
+      return this.parseSufficiencyResponse(aiResponse, content, title);
+    } catch (error) {
+      console.error('OpenAI content sufficiency assessment failed:', error);
+      
+      // Fallback to heuristic assessment
+      const totalLength = content.length + (title?.length || 0);
+      return {
+        isSufficient: totalLength > 200,
+        confidence: 0.5,
+        reason: `AI assessment failed: ${error instanceof Error ? error.message : 'Unknown error'}. Using fallback heuristic.`,
+        suggestedAction: totalLength > 500 ? 'use_current' : 'fetch_more',
+      };
     }
   }
 }
