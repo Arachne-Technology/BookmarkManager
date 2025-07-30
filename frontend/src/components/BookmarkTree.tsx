@@ -32,11 +32,16 @@ export function BookmarkTree({ bookmarks, onSelectionChange, onBookmarkClick }: 
   const selection = useSelection(bookmarks);
 
   // Notify parent of selection changes
+  const selectedBookmarks = React.useMemo(() => 
+    selection.getSelectedBookmarks(), 
+    [selection.selectedCount, bookmarks]
+  );
+
   React.useEffect(() => {
     if (onSelectionChange) {
-      onSelectionChange(selection.getSelectedBookmarks());
+      onSelectionChange(selectedBookmarks);
     }
-  }, [selection.selectedBookmarks, onSelectionChange]);
+  }, [selectedBookmarks, onSelectionChange]);
 
   const { tree, folderPaths } = useMemo(() => {
     const root: TreeNode = { name: 'Root', path: '', type: 'folder', children: [] };
