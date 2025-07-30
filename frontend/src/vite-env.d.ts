@@ -6,11 +6,11 @@
  */
 
 interface ImportMetaEnv {
-  readonly VITE_API_URL: string  // Backend API URL for frontend API calls
-  readonly VITE_NODE_ENV: string // Application environment (development, production)
+  readonly VITE_API_URL: string; // Backend API URL for frontend API calls
+  readonly VITE_NODE_ENV: string; // Application environment (development, production)
   // Add other environment variables here as needed
 }
 
 interface ImportMeta {
-  readonly env: ImportMetaEnv
+  readonly env: ImportMetaEnv;
 }

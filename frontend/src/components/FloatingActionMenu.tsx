@@ -1,8 +1,8 @@
+import { AlertTriangle, Brain, FolderOpen, Loader2, Settings, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Brain, Trash2, FolderOpen, X, Settings, Loader2, AlertTriangle } from 'lucide-react';
-import { Bookmark, processBookmarks } from '../services/api';
 import { toast } from 'react-hot-toast';
+import { useNavigate, useParams } from 'react-router-dom';
+import { type Bookmark, processBookmarks } from '../services/api';
 
 interface FloatingActionMenuProps {
   selectedBookmarks: Bookmark[];
@@ -10,13 +10,13 @@ interface FloatingActionMenuProps {
   onProcessingStarted?: () => void;
 }
 
-export function FloatingActionMenu({ 
-  selectedBookmarks, 
+export function FloatingActionMenu({
+  selectedBookmarks,
   onClearSelection,
-  onProcessingStarted 
+  onProcessingStarted,
 }: FloatingActionMenuProps) {
-  const { sessionId } = useParams<{ sessionId: string }>()
-  const navigate = useNavigate()
+  const { sessionId } = useParams<{ sessionId: string }>();
+  const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
@@ -27,12 +27,12 @@ export function FloatingActionMenu({
   const handleAnalyzeWithAI = async () => {
     setIsProcessing(true);
     try {
-      const bookmarkIds = selectedBookmarks.map(b => b.id);
+      const bookmarkIds = selectedBookmarks.map((b) => b.id);
       await processBookmarks(bookmarkIds);
-      
+
       toast.success(`Started AI analysis for ${selectedBookmarks.length} bookmarks`);
       onClearSelection();
-      
+
       if (onProcessingStarted) {
         onProcessingStarted();
       }
@@ -72,7 +72,8 @@ export function FloatingActionMenu({
         <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 min-w-72">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-900">
-              {selectedBookmarks.length} bookmark{selectedBookmarks.length !== 1 ? 's' : ''} selected
+              {selectedBookmarks.length} bookmark{selectedBookmarks.length !== 1 ? 's' : ''}{' '}
+              selected
             </h3>
             <button
               onClick={onClearSelection}
@@ -122,7 +123,7 @@ export function FloatingActionMenu({
             <button
               onClick={() => {
                 if (sessionId) {
-                  navigate(`/settings/${sessionId}`)
+                  navigate(`/settings/${sessionId}`);
                 }
               }}
               className="w-full flex items-center space-x-3 px-3 py-2 text-left text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 rounded-md transition-colors"
@@ -143,17 +144,14 @@ export function FloatingActionMenu({
                 <AlertTriangle className="h-6 w-6 text-red-500" />
               </div>
               <div>
-                <h3 className="text-lg font-medium text-gray-900">
-                  Confirm Delete
-                </h3>
-                <p className="text-sm text-gray-500">
-                  This action cannot be undone.
-                </p>
+                <h3 className="text-lg font-medium text-gray-900">Confirm Delete</h3>
+                <p className="text-sm text-gray-500">This action cannot be undone.</p>
               </div>
             </div>
 
             <p className="text-sm text-gray-700 mb-6">
-              Are you sure you want to delete {selectedBookmarks.length} bookmark{selectedBookmarks.length !== 1 ? 's' : ''}?
+              Are you sure you want to delete {selectedBookmarks.length} bookmark
+              {selectedBookmarks.length !== 1 ? 's' : ''}?
             </p>
 
             <div className="flex space-x-3 justify-end">

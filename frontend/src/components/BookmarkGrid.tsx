@@ -1,9 +1,9 @@
 // Component for displaying bookmarks in a grid layout
-import { ExternalLink, Folder } from 'lucide-react'
-import { Bookmark } from '../services/api'
+import { ExternalLink, Folder } from 'lucide-react';
+import type { Bookmark } from '../services/api';
 
 interface BookmarkGridProps {
-  bookmarks: Bookmark[]
+  bookmarks: Bookmark[];
 }
 
 export function BookmarkGrid({ bookmarks }: BookmarkGridProps) {
@@ -12,28 +12,26 @@ export function BookmarkGrid({ bookmarks }: BookmarkGridProps) {
       <div className="text-center py-12">
         <p className="text-gray-500">No bookmarks found</p>
       </div>
-    )
+    );
   }
-  
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-900">
-          Bookmarks ({bookmarks.length})
-        </h3>
+        <h3 className="text-lg font-medium text-gray-900">Bookmarks ({bookmarks.length})</h3>
       </div>
-      
+
       <div className="grid gap-4">
         {bookmarks.map((bookmark) => (
           <BookmarkCard key={bookmark.id} bookmark={bookmark} />
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 interface BookmarkCardProps {
-  bookmark: Bookmark
+  bookmark: Bookmark;
 }
 
 function BookmarkCard({ bookmark }: BookmarkCardProps) {
@@ -45,7 +43,7 @@ function BookmarkCard({ bookmark }: BookmarkCardProps) {
             <h4 className="text-sm font-medium text-gray-900 truncate">
               {bookmark.title || 'Untitled'}
             </h4>
-            <a 
+            <a
               href={bookmark.url}
               target="_blank"
               rel="noopener noreferrer"
@@ -54,11 +52,9 @@ function BookmarkCard({ bookmark }: BookmarkCardProps) {
               <ExternalLink className="h-4 w-4" />
             </a>
           </div>
-          
-          <p className="text-xs text-gray-500 truncate mb-2">
-            {bookmark.url}
-          </p>
-          
+
+          <p className="text-xs text-gray-500 truncate mb-2">{bookmark.url}</p>
+
           {bookmark.folder_path && (
             <div className="flex items-center space-x-1 text-xs text-gray-500">
               <Folder className="h-3 w-3" />
@@ -66,17 +62,19 @@ function BookmarkCard({ bookmark }: BookmarkCardProps) {
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center space-x-2 ml-4">
-          <span className={`px-2 py-1 text-xs rounded-full ${
-            bookmark.status === 'pending' 
-              ? 'bg-gray-100 text-gray-700'
-              : 'bg-green-100 text-green-700'
-          }`}>
+          <span
+            className={`px-2 py-1 text-xs rounded-full ${
+              bookmark.status === 'pending'
+                ? 'bg-gray-100 text-gray-700'
+                : 'bg-green-100 text-green-700'
+            }`}
+          >
             {bookmark.status}
           </span>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,10 +1,10 @@
-import { Express } from 'express';
-import uploadRoutes from './upload';
-import sessionRoutes from './sessions';
+import type { Express } from 'express';
+import aiRoutes from './ai';
 import bookmarkRoutes from './bookmarks';
 import exportRoutes from './export';
-import aiRoutes from './ai';
+import sessionRoutes from './sessions';
 import settingsRoutes from './settings';
+import uploadRoutes from './upload';
 
 export function setupRoutes(app: Express) {
   app.use('/api/upload', uploadRoutes);

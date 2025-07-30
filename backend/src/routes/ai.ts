@@ -46,7 +46,7 @@ router.post('/providers/configure', async (req, res, next) => {
 router.post('/process', async (req, res, next) => {
   try {
     const { bookmarkIds, provider } = req.body;
-    
+
     if (!Array.isArray(bookmarkIds) || bookmarkIds.length === 0) {
       return res.status(400).json({ error: 'bookmarkIds must be a non-empty array' });
     }
@@ -70,7 +70,7 @@ router.get('/jobs/:jobId', async (req, res, next) => {
   try {
     const { jobId } = req.params;
     const job = await aiService.getJobStatus(jobId);
-    
+
     if (!job) {
       return res.status(404).json({ error: 'Job not found' });
     }
@@ -87,7 +87,7 @@ router.get('/jobs/:jobId', async (req, res, next) => {
 router.get('/queue', async (_req, res, next) => {
   try {
     const db = getDatabase();
-    
+
     const result = await db.query(`
       SELECT 
         status,
@@ -115,8 +115,9 @@ router.get('/summaries/:sessionId', async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     const db = getDatabase();
-    
-    const result = await db.query(`
+
+    const result = await db.query(
+      `
       SELECT 
         id,
         title,
@@ -130,11 +131,13 @@ router.get('/summaries/:sessionId', async (req, res, next) => {
       WHERE session_id = $1 
         AND ai_summary IS NOT NULL
       ORDER BY updated_at DESC
-    `, [sessionId]);
+    `,
+      [sessionId]
+    );
 
-    const bookmarks = result.rows.map(row => ({
+    const bookmarks = result.rows.map((row) => ({
       ...row,
-      ai_tags: row.ai_tags || []
+      ai_tags: row.ai_tags || [],
     }));
 
     res.json({ bookmarks });

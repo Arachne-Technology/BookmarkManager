@@ -4,7 +4,9 @@
       "Bash(mkdir:*)",
       "Bash(npx tsc:*)",
       "Bash(npm run typecheck:*)",
-      "Bash(docker-compose logs:*)"
+      "Bash(docker-compose logs:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": []
   }

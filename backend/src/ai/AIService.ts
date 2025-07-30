@@ -1,8 +1,8 @@
-import { AIProvider, AIProviderConfig, AIProcessingJob } from './types';
+import { getDatabase } from '../utils/database';
 import { ClaudeProvider } from './providers/ClaudeProvider';
 import { OpenAIProvider } from './providers/OpenAIProvider';
+import type { AIProcessingJob, AIProvider, AIProviderConfig } from './types';
 import { WebScraperService } from './WebScraperService';
-import { getDatabase } from '../utils/database';
 
 export class AIService {
   private providers: Map<string, AIProvider> = new Map();
@@ -21,7 +21,7 @@ export class AIService {
       const claudeConfig: AIProviderConfig = {
         provider: 'claude',
         apiKey: process.env.CLAUDE_API_KEY,
-        model: 'claude-3-5-haiku-20241022'
+        model: 'claude-3-5-haiku-20241022',
       };
       this.providers.set('claude', new ClaudeProvider(claudeConfig));
     }
@@ -30,7 +30,7 @@ export class AIService {
       const openaiConfig: AIProviderConfig = {
         provider: 'openai',
         apiKey: process.env.OPENAI_API_KEY,
-        model: 'gpt-3.5-turbo'
+        model: 'gpt-3.5-turbo',
       };
       this.providers.set('openai', new OpenAIProvider(openaiConfig));
     }
@@ -39,7 +39,7 @@ export class AIService {
   async configureProvider(config: AIProviderConfig): Promise<boolean> {
     try {
       let provider: AIProvider;
-      
+
       switch (config.provider) {
         case 'claude':
           provider = new ClaudeProvider(config);
@@ -64,7 +64,7 @@ export class AIService {
   }
 
   getConfiguredProviders(): string[] {
-    return Array.from(this.providers.keys()).filter(key => 
+    return Array.from(this.providers.keys()).filter((key) =>
       this.providers.get(key)?.isConfigured()
     );
   }
@@ -77,18 +77,15 @@ export class AIService {
 
   async processBookmark(bookmarkId: string, providerName?: string): Promise<string> {
     const db = getDatabase();
-    
+
     try {
       // Get bookmark details
-      const bookmarkResult = await db.query(
-        'SELECT * FROM bookmarks WHERE id = $1',
-        [bookmarkId]
-      );
+      const bookmarkResult = await db.query('SELECT * FROM bookmarks WHERE id = $1', [bookmarkId]);
 
       if (bookmarkResult.rows.length === 0) {
         throw new Error('Bookmark not found');
       }
-      
+
       // Determine which provider to use
       const selectedProvider = providerName || this.getDefaultProvider();
       if (!selectedProvider) {
@@ -97,7 +94,7 @@ export class AIService {
 
       // Create processing job
       const jobId = await this.createProcessingJob(bookmarkId, selectedProvider);
-      
+
       // Add to queue
       this.addToQueue({
         id: jobId,
@@ -107,7 +104,7 @@ export class AIService {
         priority: 1,
         attempts: 0,
         maxAttempts: 3,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       // Start processing if not already running
@@ -124,7 +121,7 @@ export class AIService {
 
   private getDefaultProvider(): string | null {
     const configuredProviders = this.getConfiguredProviders();
-    
+
     // Priority order: claude, openai
     const priorities = ['claude', 'openai'];
     for (const provider of priorities) {
@@ -132,20 +129,20 @@ export class AIService {
         return provider;
       }
     }
-    
+
     return configuredProviders[0] || null;
   }
 
   private async createProcessingJob(bookmarkId: string, provider: string): Promise<string> {
     const db = getDatabase();
-    
+
     const result = await db.query(
       `INSERT INTO ai_jobs (bookmark_id, provider, status, created_at) 
        VALUES ($1, $2, 'pending', NOW()) 
        RETURNING id`,
       [bookmarkId, provider]
     );
-    
+
     return result.rows[0].id;
   }
 
@@ -164,9 +161,9 @@ export class AIService {
     while (this.processingQueue.length > 0) {
       const job = this.processingQueue.shift()!;
       await this.processJob(job);
-      
+
       // Rate limiting: wait 1 second between requests
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     this.isProcessing = false;
@@ -174,29 +171,28 @@ export class AIService {
 
   private async processJob(job: AIProcessingJob): Promise<void> {
     const db = getDatabase();
-    
+
     try {
       // Update job status
-      await db.query(
-        'UPDATE ai_jobs SET status = $1, started_at = NOW() WHERE id = $2',
-        ['processing', job.id]
-      );
+      await db.query('UPDATE ai_jobs SET status = $1, started_at = NOW() WHERE id = $2', [
+        'processing',
+        job.id,
+      ]);
 
       // Get bookmark
-      const bookmarkResult = await db.query(
-        'SELECT * FROM bookmarks WHERE id = $1',
-        [job.bookmarkId]
-      );
+      const bookmarkResult = await db.query('SELECT * FROM bookmarks WHERE id = $1', [
+        job.bookmarkId,
+      ]);
 
       if (bookmarkResult.rows.length === 0) {
         throw new Error('Bookmark not found');
       }
 
       const bookmark = bookmarkResult.rows[0];
-      
+
       // Scrape content
       const content = await this.webScraper.scrapeContent(bookmark.url);
-      
+
       if (content.error) {
         throw new Error(`Scraping failed: ${content.error}`);
       }
@@ -208,11 +204,7 @@ export class AIService {
       }
 
       // Generate summary
-      const summary = await provider.summarize(
-        content.textContent, 
-        bookmark.url, 
-        bookmark.title
-      );
+      const summary = await provider.summarize(content.textContent, bookmark.url, bookmark.title);
 
       if (summary.error) {
         throw new Error(`AI processing failed: ${summary.error}`);
@@ -234,19 +226,18 @@ export class AIService {
           JSON.stringify(summary.tags || []),
           summary.category,
           job.provider,
-          job.bookmarkId
+          job.bookmarkId,
         ]
       );
 
       // Mark job as completed
-      await db.query(
-        'UPDATE ai_jobs SET status = $1, completed_at = NOW() WHERE id = $2',
-        ['completed', job.id]
-      );
-
+      await db.query('UPDATE ai_jobs SET status = $1, completed_at = NOW() WHERE id = $2', [
+        'completed',
+        job.id,
+      ]);
     } catch (error) {
       console.error(`Job ${job.id} failed:`, error);
-      
+
       // Update job with error
       await db.query(
         `UPDATE ai_jobs SET 
@@ -270,11 +261,8 @@ export class AIService {
 
   async getJobStatus(jobId: string): Promise<AIProcessingJob | null> {
     const db = getDatabase();
-    
-    const result = await db.query(
-      'SELECT * FROM ai_jobs WHERE id = $1',
-      [jobId]
-    );
+
+    const result = await db.query('SELECT * FROM ai_jobs WHERE id = $1', [jobId]);
 
     if (result.rows.length === 0) {
       return null;

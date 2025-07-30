@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { setupLogger } from '../utils/logger';
 
 const logger = setupLogger();
@@ -8,12 +8,7 @@ export interface AppError extends Error {
   isOperational?: boolean;
 }
 
-export function errorHandler(
-  err: AppError,
-  req: Request,
-  res: Response,
-  _: NextFunction
-) {
+export function errorHandler(err: AppError, req: Request, res: Response, _: NextFunction) {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
 
@@ -22,13 +17,13 @@ export function errorHandler(
     stack: err.stack,
     url: req.url,
     method: req.method,
-    statusCode
+    statusCode,
   });
 
   res.status(statusCode).json({
     error: {
       message,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    }
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    },
   });
 }

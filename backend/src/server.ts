@@ -1,12 +1,13 @@
 // Import required dependencies for the Express.js server
-import express from 'express';
+
 import cors from 'cors'; // Enable Cross-Origin Resource Sharing for frontend communication
-import helmet from 'helmet'; // Security middleware to protect against common vulnerabilities
 import dotenv from 'dotenv'; // Load environment variables from .env file
+import express from 'express';
+import helmet from 'helmet'; // Security middleware to protect against common vulnerabilities
+import { errorHandler } from './middleware/errorHandler';
+import { setupRoutes } from './routes';
 import { setupDatabase } from './utils/database';
 import { setupLogger } from './utils/logger';
-import { setupRoutes } from './routes';
-import { errorHandler } from './middleware/errorHandler';
 
 // Load environment variables from .env file into process.env
 dotenv.config();
@@ -22,10 +23,12 @@ const logger = setupLogger();
 app.use(helmet());
 
 // Enable CORS to allow requests from the frontend React application
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Allow requests from frontend URL
-  credentials: true // Allow cookies and authentication headers
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Allow requests from frontend URL
+    credentials: true, // Allow cookies and authentication headers
+  })
+);
 
 // Parse JSON request bodies with size limit for file uploads
 app.use(express.json({ limit: process.env.UPLOAD_LIMIT || '10mb' }));
@@ -34,10 +37,10 @@ app.use(express.urlencoded({ extended: true, limit: process.env.UPLOAD_LIMIT || 
 
 // Health check endpoint for monitoring and load balancers
 app.get('/health', (_, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
-    service: 'bookmark-parser-backend'
+    service: 'bookmark-parser-backend',
   });
 });
 
@@ -56,7 +59,7 @@ async function startServer() {
     // Initialize database connection before starting the server
     await setupDatabase();
     logger.info('Database connection established');
-    
+
     // Start the HTTP server on the specified port
     app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);

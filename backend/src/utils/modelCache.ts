@@ -24,7 +24,7 @@ class ModelCache {
   get(provider: string, apiKey: string): CacheEntry | null {
     const key = this.getCacheKey(provider, this.hashApiKey(apiKey));
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       return null;
     }
@@ -38,16 +38,20 @@ class ModelCache {
     return entry;
   }
 
-  set(provider: string, apiKey: string, result: { models: { id: string; name: string; description?: string }[]; error?: string }): void {
+  set(
+    provider: string,
+    apiKey: string,
+    result: { models: { id: string; name: string; description?: string }[]; error?: string }
+  ): void {
     const key = this.getCacheKey(provider, this.hashApiKey(apiKey));
     const entry: CacheEntry = {
       models: result.models,
       timestamp: Date.now(),
-      ...(result.error && { error: result.error })
+      ...(result.error && { error: result.error }),
     };
-    
+
     this.cache.set(key, entry);
-    
+
     // Clean up old entries periodically
     if (this.cache.size > 100) {
       this.cleanup();

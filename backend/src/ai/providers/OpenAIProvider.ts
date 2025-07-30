@@ -1,30 +1,32 @@
 import { BaseAIProvider } from '../BaseAIProvider';
-import { AISummaryResult, AIProviderConfig } from '../types';
+import type { AIProviderConfig, AISummaryResult } from '../types';
 
 export class OpenAIProvider extends BaseAIProvider {
   private static readonly API_URL = 'https://api.openai.com/v1/chat/completions';
   private static readonly MODELS_URL = 'https://api.openai.com/v1/models';
-  
+
   constructor(config: AIProviderConfig) {
     super(config);
   }
 
-  static async fetchAvailableModels(apiKey: string): Promise<{ models: { id: string; name: string; description?: string }[]; error?: string }> {
+  static async fetchAvailableModels(
+    apiKey: string
+  ): Promise<{ models: { id: string; name: string; description?: string }[]; error?: string }> {
     try {
       const response = await fetch(OpenAIProvider.MODELS_URL, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {
         throw new Error(`OpenAI API error: ${response.status}`);
       }
 
-      const data = await response.json() as any;
-      
+      const data = (await response.json()) as any;
+
       if (!data.data || !Array.isArray(data.data)) {
         throw new Error('Invalid response format from OpenAI API');
       }
@@ -36,7 +38,7 @@ export class OpenAIProvider extends BaseAIProvider {
         .map((model: any) => ({
           id: model.id,
           name: model.id.toUpperCase().replace(/-/g, ' '),
-          description: `Created: ${new Date(model.created * 1000).toLocaleDateString()}`
+          description: `Created: ${new Date(model.created * 1000).toLocaleDateString()}`,
         }));
 
       return { models: chatModels };
@@ -44,7 +46,7 @@ export class OpenAIProvider extends BaseAIProvider {
       console.error('Error fetching OpenAI models:', error);
       return {
         models: [],
-        error: error instanceof Error ? error.message : 'Failed to fetch OpenAI models'
+        error: error instanceof Error ? error.message : 'Failed to fetch OpenAI models',
       };
     }
   }
@@ -54,7 +56,7 @@ export class OpenAIProvider extends BaseAIProvider {
   }
 
   isConfigured(): boolean {
-    return !!(this.config.apiKey);
+    return !!this.config.apiKey;
   }
 
   async validateConfig(): Promise<boolean> {
@@ -67,16 +69,18 @@ export class OpenAIProvider extends BaseAIProvider {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey!}`
+          Authorization: `Bearer ${this.config.apiKey!}`,
         },
         body: JSON.stringify({
           model: this.config.model || 'gpt-3.5-turbo',
           max_tokens: 50,
-          messages: [{
-            role: 'user',
-            content: 'Hello, this is a test message to validate the API configuration.'
-          }]
-        })
+          messages: [
+            {
+              role: 'user',
+              content: 'Hello, this is a test message to validate the API configuration.',
+            },
+          ],
+        }),
       });
 
       return response.ok;
@@ -93,44 +97,52 @@ export class OpenAIProvider extends BaseAIProvider {
 
     try {
       const prompt = this.createPrompt(content, url, title);
-      
+
       const response = await fetch(OpenAIProvider.API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey!}`
+          Authorization: `Bearer ${this.config.apiKey!}`,
         },
         body: JSON.stringify({
           model: this.config.model || 'gpt-3.5-turbo',
           max_tokens: this.config.maxTokens || 1000,
           temperature: this.config.temperature || 0.7,
-          messages: [{
-            role: 'system',
-            content: 'You are a helpful assistant that analyzes web page content and provides structured summaries in JSON format.'
-          }, {
-            role: 'user',
-            content: prompt
-          }]
-        })
+          messages: [
+            {
+              role: 'system',
+              content:
+                'You are a helpful assistant that analyzes web page content and provides structured summaries in JSON format.',
+            },
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+        }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: { message: 'Unknown error' } })) as any;
-        throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+        const errorData = (await response
+          .json()
+          .catch(() => ({ error: { message: 'Unknown error' } }))) as any;
+        throw new Error(
+          `OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`
+        );
       }
 
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
       const aiResponse = data.choices?.[0]?.message?.content || '';
-      
+
       const parsed = this.parseAIResponse(aiResponse);
-      
+
       return {
         shortSummary: parsed.shortSummary || 'No summary available',
         longSummary: parsed.longSummary || 'No detailed summary available',
         tags: parsed.tags || [],
         category: parsed.category || 'Uncategorized',
         provider: this.name,
-        confidence: 0.8
+        confidence: 0.8,
       };
     } catch (error) {
       console.error('OpenAI summarization error:', error);

@@ -8,7 +8,7 @@ let pool: Pool;
  * Initializes and configures the PostgreSQL connection pool
  * This function should be called once during application startup
  * Uses singleton pattern to ensure only one pool instance exists
- * 
+ *
  * @returns Configured PostgreSQL connection pool
  */
 export function setupDatabase(): Pool {
@@ -25,10 +25,10 @@ export function setupDatabase(): Pool {
 
   // Create new connection pool with optimized settings
   pool = new Pool({
-    connectionString: databaseUrl,    // Full database connection string
-    max: 20,                         // Maximum number of connections in pool
-    idleTimeoutMillis: 30000,        // Close idle connections after 30 seconds
-    connectionTimeoutMillis: 2000,   // Wait up to 2 seconds for connection
+    connectionString: databaseUrl, // Full database connection string
+    max: 20, // Maximum number of connections in pool
+    idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+    connectionTimeoutMillis: 2000, // Wait up to 2 seconds for connection
   });
 
   // Handle unexpected database errors
@@ -43,7 +43,7 @@ export function setupDatabase(): Pool {
 /**
  * Returns the initialized database connection pool
  * Throws error if database hasn't been set up yet
- * 
+ *
  * @returns Active PostgreSQL connection pool
  */
 export function getDatabase(): Pool {

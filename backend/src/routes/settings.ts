@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { getDatabase } from '../utils/database';
 import crypto from 'crypto';
+import { Router } from 'express';
 import { ClaudeProvider } from '../ai/providers/ClaudeProvider';
 import { OpenAIProvider } from '../ai/providers/OpenAIProvider';
+import { getDatabase } from '../utils/database';
 import { modelCache } from '../utils/modelCache';
 
 const router = Router();
@@ -42,7 +42,7 @@ router.get('/:sessionId', async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     const db = getDatabase();
-    
+
     const result = await db.query(
       'SELECT provider, model, max_tokens, temperature FROM user_preferences WHERE session_id = $1',
       [sessionId]
@@ -52,7 +52,7 @@ router.get('/:sessionId', async (req, res, next) => {
       provider: process.env.DEFAULT_AI_PROVIDER || 'claude',
       model: null,
       max_tokens: 1000,
-      temperature: 0.7
+      temperature: 0.7,
     };
 
     res.json(preferences);
@@ -71,10 +71,9 @@ router.put('/:sessionId', async (req, res, next) => {
     const db = getDatabase();
 
     // Check if preferences exist
-    const existingResult = await db.query(
-      'SELECT id FROM user_preferences WHERE session_id = $1',
-      [sessionId]
-    );
+    const existingResult = await db.query('SELECT id FROM user_preferences WHERE session_id = $1', [
+      sessionId,
+    ]);
 
     const encryptedApiKey = apiKey ? encrypt(apiKey) : null;
 
@@ -113,7 +112,7 @@ router.post('/:sessionId/test', async (req, res, next) => {
   try {
     const { sessionId: _sessionId } = req.params;
     const { provider, apiKey } = req.body;
-    
+
     if (!provider || !apiKey) {
       return res.status(400).json({ error: 'Provider and API key are required' });
     }
@@ -148,7 +147,7 @@ router.post('/models/:provider', async (req, res, next) => {
   try {
     const { provider } = req.params;
     const { apiKey } = req.body;
-    
+
     if (!apiKey) {
       return res.status(400).json({ error: 'API key is required to fetch models' });
     }
@@ -194,7 +193,7 @@ router.post('/models/:provider', async (req, res, next) => {
 router.get('/models/:provider', async (req, res, next) => {
   try {
     const { provider } = req.params;
-    
+
     // Check if we have environment API keys as fallback
     let apiKey: string | undefined;
     switch (provider) {
@@ -209,9 +208,9 @@ router.get('/models/:provider', async (req, res, next) => {
     }
 
     if (!apiKey) {
-      return res.json({ 
+      return res.json({
         models: [],
-        message: 'API key required to fetch models. Please configure your API key first.'
+        message: 'API key required to fetch models. Please configure your API key first.',
       });
     }
 
@@ -229,9 +228,9 @@ router.get('/models/:provider', async (req, res, next) => {
     }
 
     if (result.error) {
-      return res.json({ 
+      return res.json({
         models: [],
-        message: `Unable to fetch models: ${result.error}`
+        message: `Unable to fetch models: ${result.error}`,
       });
     }
 

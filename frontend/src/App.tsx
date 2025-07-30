@@ -1,10 +1,10 @@
 // Import React Router components for client-side navigation
-import { Routes, Route } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom';
 // Import application components
-import { Layout } from './components/Layout'
-import { HomePage } from './pages/HomePage'
-import { BookmarkPage } from './pages/BookmarkPage'
-import { SettingsPage } from './pages/SettingsPage'
+import { Layout } from './components/Layout';
+import { BookmarkPage } from './pages/BookmarkPage';
+import { HomePage } from './pages/HomePage';
+import { SettingsPage } from './pages/SettingsPage';
 
 /**
  * Main App component that defines the application routing structure
@@ -23,7 +23,7 @@ function App() {
         <Route path="/settings/:sessionId" element={<SettingsPage />} />
       </Routes>
     </Layout>
-  )
+  );
 }
 
-export default App
+export default App;

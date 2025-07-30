@@ -1,18 +1,18 @@
-import { useState } from 'react';
-import { 
-  X, 
-  ExternalLink, 
-  Brain, 
-  Trash2, 
-  FolderOpen, 
+import {
+  Brain,
+  Calendar,
+  ExternalLink,
+  FolderOpen,
+  Globe,
+  Loader2,
   RefreshCw,
   Tag,
-  Calendar,
-  Globe,
-  Loader2
+  Trash2,
+  X,
 } from 'lucide-react';
-import { Bookmark } from '../services/api';
+import { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import type { Bookmark } from '../services/api';
 
 interface BookmarkDetailPaneProps {
   bookmark: Bookmark;
@@ -23,13 +23,13 @@ interface BookmarkDetailPaneProps {
   onMove?: (bookmarkId: string) => void;
 }
 
-export function BookmarkDetailPane({ 
-  bookmark, 
-  isOpen, 
+export function BookmarkDetailPane({
+  bookmark,
+  isOpen,
   onClose,
   onReanalyze,
   onDelete,
-  onMove 
+  onMove,
 }: BookmarkDetailPaneProps) {
   const [isReanalyzing, setIsReanalyzing] = useState(false);
 
@@ -39,7 +39,7 @@ export function BookmarkDetailPane({
 
   const handleReanalyze = async () => {
     if (!onReanalyze) return;
-    
+
     setIsReanalyzing(true);
     try {
       await onReanalyze(bookmark.id);
@@ -53,7 +53,7 @@ export function BookmarkDetailPane({
 
   const handleDelete = () => {
     if (!onDelete) return;
-    
+
     if (confirm('Are you sure you want to delete this bookmark?')) {
       onDelete(bookmark.id);
       onClose();
@@ -62,7 +62,7 @@ export function BookmarkDetailPane({
 
   const handleMove = () => {
     if (!onMove) return;
-    
+
     // TODO: Implement folder selection modal
     toast('Move functionality coming soon');
   };
@@ -72,10 +72,7 @@ export function BookmarkDetailPane({
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900">Bookmark Details</h2>
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
-        >
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
           <X className="h-5 w-5" />
         </button>
       </div>
@@ -143,16 +140,15 @@ export function BookmarkDetailPane({
               {/* Provider Info */}
               {bookmark.ai_provider && (
                 <div className="text-xs text-gray-500">
-                  Analyzed by {bookmark.ai_provider.charAt(0).toUpperCase() + bookmark.ai_provider.slice(1)}
+                  Analyzed by{' '}
+                  {bookmark.ai_provider.charAt(0).toUpperCase() + bookmark.ai_provider.slice(1)}
                 </div>
               )}
 
               {/* Short Summary */}
               <div>
                 <h5 className="text-sm font-medium text-gray-700 mb-1">Summary</h5>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {bookmark.ai_summary}
-                </p>
+                <p className="text-sm text-gray-600 leading-relaxed">{bookmark.ai_summary}</p>
               </div>
 
               {/* Long Summary */}
@@ -160,11 +156,12 @@ export function BookmarkDetailPane({
                 <div>
                   <h5 className="text-sm font-medium text-gray-700 mb-1">Detailed Analysis</h5>
                   <div className="text-sm text-gray-600 leading-relaxed space-y-2">
-                    {bookmark.ai_long_summary.split('\n').map((paragraph, index) => (
-                      paragraph.trim() && (
-                        <p key={index}>{paragraph.trim()}</p>
-                      )
-                    ))}
+                    {bookmark.ai_long_summary
+                      .split('\n')
+                      .map(
+                        (paragraph, index) =>
+                          paragraph.trim() && <p key={index}>{paragraph.trim()}</p>
+                      )}
                   </div>
                 </div>
               )}
@@ -202,9 +199,7 @@ export function BookmarkDetailPane({
           ) : (
             <div className="text-center py-6">
               <Brain className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500 mb-3">
-                This bookmark hasn't been analyzed yet
-              </p>
+              <p className="text-sm text-gray-500 mb-3">This bookmark hasn't been analyzed yet</p>
               <button
                 onClick={handleReanalyze}
                 disabled={isReanalyzing}

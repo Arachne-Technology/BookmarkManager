@@ -22,10 +22,10 @@ const storage = multer.diskStorage({
   },
   // Generate unique filename to prevent conflicts
   filename: (_, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     // Format: fieldname-timestamp-random.ext (e.g., bookmarkFile-1234567890-123456789.html)
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
+  },
 });
 
 /**
@@ -35,7 +35,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage, // Use the disk storage configuration defined above
   limits: {
-    fileSize: 10 * 1024 * 1024 // Maximum file size: 10MB (sufficient for large bookmark exports)
+    fileSize: 10 * 1024 * 1024, // Maximum file size: 10MB (sufficient for large bookmark exports)
   },
   // Validate uploaded files to ensure they are HTML bookmark exports
   fileFilter: (_, file, cb) => {
@@ -45,13 +45,13 @@ const upload = multer({
     } else {
       cb(new Error('Only HTML files are allowed')); // Reject non-HTML files
     }
-  }
+  },
 });
 
 /**
  * POST route handler for uploading and parsing bookmark files
  * Creates a new session and stores parsed bookmarks in the database
- * 
+ *
  * Expected: multipart/form-data with 'bookmarkFile' field containing HTML file
  * Returns: { sessionId, message, bookmarksCount }
  */
@@ -78,7 +78,7 @@ router.post('/', upload.single('bookmarkFile'), async (req, res, next) => {
 
       // Parse the uploaded HTML bookmark file
       const bookmarks = await parseBookmarkFile(req.file.path);
-      
+
       // Insert each parsed bookmark into the database
       for (let i = 0; i < bookmarks.length; i++) {
         const bookmark = bookmarks[i]!;
@@ -89,10 +89,11 @@ router.post('/', upload.single('bookmarkFile'), async (req, res, next) => {
       }
 
       // Update session with final bookmark count and mark as completed
-      await db.query(
-        'UPDATE sessions SET original_count = $1, status = $2 WHERE id = $3',
-        [bookmarks.length, 'completed', sessionId]
-      );
+      await db.query('UPDATE sessions SET original_count = $1, status = $2 WHERE id = $3', [
+        bookmarks.length,
+        'completed',
+        sessionId,
+      ]);
 
       // Commit transaction if all operations succeeded
       await db.query('COMMIT');
@@ -103,16 +104,14 @@ router.post('/', upload.single('bookmarkFile'), async (req, res, next) => {
       res.json({
         sessionId,
         message: 'File uploaded and parsed successfully',
-        bookmarksCount: bookmarks.length
+        bookmarksCount: bookmarks.length,
       });
       return;
-
     } catch (error) {
       // Rollback transaction if any database operation failed
       await db.query('ROLLBACK');
       throw error;
     }
-
   } catch (error) {
     // Pass errors to the global error handler middleware
     next(error);
