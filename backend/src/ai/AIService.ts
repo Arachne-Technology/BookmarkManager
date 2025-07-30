@@ -258,6 +258,15 @@ export class AIService {
 
       // Update bookmark with summary
       console.log(`[AI Service] Updating bookmark ${job.bookmarkId} with AI results...`);
+      console.log(`[AI Service] Update parameters:`, {
+        shortSummary: summary.shortSummary ? `${summary.shortSummary.substring(0, 50)}...` : 'null',
+        longSummary: summary.longSummary ? `${summary.longSummary.substring(0, 50)}...` : 'null',
+        tags: summary.tags,
+        category: summary.category,
+        provider: job.provider,
+        bookmarkId: job.bookmarkId
+      });
+      
       const updateResult = await db.query(
         `UPDATE bookmarks SET 
          ai_summary = $1, 
@@ -270,16 +279,25 @@ export class AIService {
          WHERE id = $6 
          RETURNING id, status, ai_summary`,
         [
-          summary.shortSummary,
-          summary.longSummary,
+          summary.shortSummary || null,
+          summary.longSummary || null,
           JSON.stringify(summary.tags || []),
-          summary.category,
+          summary.category || null,
           job.provider,
           job.bookmarkId,
         ]
       );
 
       console.log(`[AI Service] Database update result:`, updateResult.rows[0]);
+      
+      if (updateResult.rows.length === 0) {
+        throw new Error(`Failed to update bookmark ${job.bookmarkId} - bookmark not found or update failed`);
+      }
+      
+      if (updateResult.rows[0].status !== 'ai_analyzed') {
+        console.error(`[AI Service] WARNING: Status update failed! Expected 'ai_analyzed', got '${updateResult.rows[0].status}'`);
+        throw new Error(`Status update failed for bookmark ${job.bookmarkId}`);
+      }
 
       // Mark job as completed
       console.log(`[AI Service] Marking job ${job.id} as completed...`);
