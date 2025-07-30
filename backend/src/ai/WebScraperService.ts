@@ -54,14 +54,14 @@ export class WebScraperService {
       // Extract content
       const content = await page.evaluate(() => {
         // Remove scripts and styles
-        const scripts = (document as any).querySelectorAll('script, style');
-        scripts.forEach((el: any) => el.remove());
+        const scripts = document.querySelectorAll('script, style');
+        scripts.forEach((el) => el.remove());
 
         return {
-          title: (document as any).title || '',
-          textContent: (document as any).body?.innerText || '',
+          title: document.title || '',
+          textContent: document.body?.innerText || '',
           metaDescription:
-            ((document as any).querySelector('meta[name="description"]') as any)?.content || '',
+            document.querySelector('meta[name="description"]')?.getAttribute('content') || '',
         };
       });
 
