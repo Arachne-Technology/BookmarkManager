@@ -46,9 +46,9 @@ export function BookmarkDetailPane({
     setIsReanalyzing(true);
     try {
       await onReanalyze(bookmark.id);
-      toast.success('Reanalysis started');
+      // Toast is handled by parent component to avoid duplicates
     } catch (error) {
-      toast.error('Failed to start reanalysis');
+      toast.error(bookmark.ai_summary ? 'Failed to start reanalysis' : 'Failed to start analysis');
     } finally {
       setIsReanalyzing(false);
     }

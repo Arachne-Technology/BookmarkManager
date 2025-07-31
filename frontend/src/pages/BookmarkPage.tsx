@@ -99,12 +99,25 @@ export function BookmarkPage() {
           onReanalyze={async (bookmarkId) => {
             try {
               const result = await processBookmarks([bookmarkId]);
-              toast.success(`Started reanalysis of bookmark. Job ID: ${result.jobIds[0]}`);
+              const bookmark = bookmarksData.bookmarks.find(b => b.id === bookmarkId);
+              const hasBeenAnalyzed = bookmark?.ai_summary;
+              
+              toast.success(
+                hasBeenAnalyzed 
+                  ? `Started re-analysis of bookmark. Job ID: ${result.jobIds[0]}`
+                  : `Started analysis of bookmark. Job ID: ${result.jobIds[0]}`
+              );
               // Refetch bookmarks to update the UI
               refetchBookmarks();
             } catch (error) {
-              console.error('Failed to start reanalysis:', error);
-              toast.error('Failed to start reanalysis. Please try again.');
+              console.error('Failed to start analysis:', error);
+              const bookmark = bookmarksData.bookmarks.find(b => b.id === bookmarkId);
+              const hasBeenAnalyzed = bookmark?.ai_summary;
+              toast.error(
+                hasBeenAnalyzed
+                  ? 'Failed to start re-analysis. Please try again.'
+                  : 'Failed to start analysis. Please try again.'
+              );
             }
           }}
           onDelete={(bookmarkId) => {
