@@ -2,13 +2,14 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { BookmarkDetailPane } from '../components/BookmarkDetailPane';
 import { BookmarkTree } from '../components/BookmarkTree';
 import { ExpertModeModal } from '../components/ExpertModeModal';
 import { FloatingActionMenu } from '../components/FloatingActionMenu';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { SessionInfo } from '../components/SessionInfo';
-import { type Bookmark, getBookmarks, getSession } from '../services/api';
+import { type Bookmark, getBookmarks, getSession, processBookmarks } from '../services/api';
 
 export function BookmarkPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -95,9 +96,16 @@ export function BookmarkPage() {
           bookmark={detailPaneBookmark}
           isOpen={!!detailPaneBookmark}
           onClose={handleDetailPaneClose}
-          onReanalyze={(bookmarkId) => {
-            // TODO: Implement reanalyze functionality
-            console.log('Reanalyzing bookmark:', bookmarkId);
+          onReanalyze={async (bookmarkId) => {
+            try {
+              const result = await processBookmarks([bookmarkId]);
+              toast.success(`Started reanalysis of bookmark. Job ID: ${result.jobIds[0]}`);
+              // Refetch bookmarks to update the UI
+              refetchBookmarks();
+            } catch (error) {
+              console.error('Failed to start reanalysis:', error);
+              toast.error('Failed to start reanalysis. Please try again.');
+            }
           }}
           onDelete={(bookmarkId) => {
             // TODO: Implement delete functionality
