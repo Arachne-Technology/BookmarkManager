@@ -136,7 +136,7 @@ export class OpenAIProvider extends BaseAIProvider {
 
       const parsed = this.parseAIResponse(aiResponse);
 
-      return {
+      const result: AISummaryResult = {
         shortSummary: parsed.shortSummary || 'No summary available',
         longSummary: parsed.longSummary || 'No detailed summary available',
         tags: parsed.tags || [],
@@ -144,6 +144,16 @@ export class OpenAIProvider extends BaseAIProvider {
         provider: this.name,
         confidence: 0.8,
       };
+
+      // Assess response quality
+      const qualityAssessment = this.assessResponseQuality(result, content, url);
+      result.qualityScore = qualityAssessment.qualityScore;
+      result.qualityIssues = qualityAssessment.issues.map(issue => `${issue.severity}: ${issue.description}`);
+
+      // Adjust confidence based on quality
+      result.confidence = Math.min(result.confidence, qualityAssessment.confidence);
+
+      return result;
     } catch (error) {
       console.error('OpenAI summarization error:', error);
       return this.createErrorResult(error instanceof Error ? error.message : 'Unknown error');

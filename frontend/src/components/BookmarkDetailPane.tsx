@@ -6,6 +6,7 @@ import {
   Globe,
   Loader2,
   RefreshCw,
+  Search,
   Tag,
   Trash2,
   X,
@@ -21,6 +22,7 @@ interface BookmarkDetailPaneProps {
   onReanalyze?: (bookmarkId: string) => void;
   onDelete?: (bookmarkId: string) => void;
   onMove?: (bookmarkId: string) => void;
+  onExpertMode?: (bookmarkId: string) => void;
 }
 
 export function BookmarkDetailPane({
@@ -30,6 +32,7 @@ export function BookmarkDetailPane({
   onReanalyze,
   onDelete,
   onMove,
+  onExpertMode,
 }: BookmarkDetailPaneProps) {
   const [isReanalyzing, setIsReanalyzing] = useState(false);
 
@@ -65,6 +68,11 @@ export function BookmarkDetailPane({
 
     // TODO: Implement folder selection modal
     toast('Move functionality coming soon');
+  };
+
+  const handleExpertMode = () => {
+    if (!onExpertMode) return;
+    onExpertMode(bookmark.id);
   };
 
   return (
@@ -239,6 +247,17 @@ export function BookmarkDetailPane({
         <div className="p-4">
           <h4 className="font-medium text-gray-900 mb-3">Actions</h4>
           <div className="space-y-2">
+            {/* Expert Mode - Only show if bookmark has been analyzed */}
+            {bookmark.ai_summary && (
+              <button
+                onClick={handleExpertMode}
+                className="w-full flex items-center space-x-3 px-3 py-2 text-left text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 rounded-md transition-colors"
+              >
+                <Search className="h-4 w-4 text-purple-500" />
+                <span>Expert Mode</span>
+              </button>
+            )}
+
             <button
               onClick={handleMove}
               className="w-full flex items-center space-x-3 px-3 py-2 text-left text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-md transition-colors"

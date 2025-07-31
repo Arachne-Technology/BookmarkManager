@@ -1,3 +1,4 @@
+// @ts-ignore
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import type { WebPageContent } from './types';
@@ -48,24 +49,53 @@ export class ProgressiveWebScraperService {
    */
   async scrapeContent(url: string): Promise<WebPageContent> {
     console.log(`Starting tiered content extraction for ${url}`);
+    const startTime = Date.now();
+    const failedMethods: string[] = [];
+    let attempts = 0;
 
     // Tier 1: Try reader mode variants
+    attempts++;
     const readerResult = await this.tryReaderMode(url);
     if (readerResult) {
       console.log(`Reader mode successful for ${url}`);
-      return readerResult;
+      return {
+        ...readerResult,
+        extractionMethod: 'reader_mode',
+        extractionTime: Date.now() - startTime,
+        attempts,
+        failedMethods
+      };
+    } else {
+      failedMethods.push('reader_mode');
     }
 
     // Tier 2: Try mobile user agent
+    attempts++;
     const mobileResult = await this.tryMobileVersion(url);
     if (mobileResult) {
       console.log(`Mobile version successful for ${url}`);
-      return mobileResult;
+      return {
+        ...mobileResult,
+        extractionMethod: 'mobile_version',
+        extractionTime: Date.now() - startTime,
+        attempts,
+        failedMethods
+      };
+    } else {
+      failedMethods.push('mobile_version');
     }
 
     // Tier 3: Download to temporary storage and extract
+    attempts++;
     console.log(`Both reader and mobile failed for ${url}, using disk-based extraction`);
-    return await this.diskBasedExtraction(url);
+    const diskResult = await this.diskBasedExtraction(url);
+    return {
+      ...diskResult,
+      extractionMethod: 'disk_based',
+      extractionTime: Date.now() - startTime,
+      attempts,
+      failedMethods
+    };
   }
 
   /**

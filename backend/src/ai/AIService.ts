@@ -249,11 +249,27 @@ export class AIService {
         longSummary: summary.longSummary ? `${summary.longSummary.substring(0, 100)}...` : 'none',
         tags: summary.tags,
         category: summary.category,
-        provider: summary.provider
+        provider: summary.provider,
+        qualityScore: summary.qualityScore,
+        qualityIssues: summary.qualityIssues
       });
 
       if (summary.error) {
         throw new Error(`AI processing failed: ${summary.error}`);
+      }
+
+      // Check response quality and handle accordingly
+      if (summary.qualityScore !== undefined && summary.qualityScore < 0.7) {
+        console.log(`[AI Service] Low quality response detected (score: ${summary.qualityScore}). Issues:`, summary.qualityIssues);
+        
+        // For very low quality responses (< 0.3), still proceed but mark as low quality
+        if (summary.qualityScore < 0.3) {
+          console.warn(`[AI Service] Very low quality response (score: ${summary.qualityScore}), but proceeding with processing. Issues: ${summary.qualityIssues?.join(', ')}`);
+          // We'll still save the response but the quality score and issues will reflect the problems
+        } else {
+          // For medium quality issues, we can proceed but log a warning
+          console.warn(`[AI Service] Proceeding with medium-quality response (score: ${summary.qualityScore})`);
+        }
       }
 
       // Update bookmark with summary
@@ -267,6 +283,30 @@ export class AIService {
         bookmarkId: job.bookmarkId
       });
       
+      // Prepare expert mode data
+      const aiRequestData = {
+        provider: job.provider,
+        timestamp: new Date().toISOString(),
+        url: bookmark.url,
+        title: bookmark.title,
+        contentLength: content.textContent.length,
+        prompt: 'summarize_content' // Could be expanded to include actual prompt
+      };
+
+      const aiResponseData = {
+        ...summary,
+        timestamp: new Date().toISOString(),
+        processingTimeMs: job.startedAt ? Date.now() - new Date(job.startedAt).getTime() : undefined
+      };
+
+      const extractionMetadata = {
+        originalFileSize: content.originalSize || null,
+        extractedLength: content.textContent.length,
+        extractionTime: content.extractionTime || null,
+        attempts: content.attempts || null,
+        failedMethods: content.failedMethods || []
+      };
+
       const updateResult = await db.query(
         `UPDATE bookmarks SET 
          ai_summary = $1, 
@@ -274,9 +314,16 @@ export class AIService {
          ai_tags = $3, 
          ai_category = $4, 
          ai_provider = $5,
+         ai_quality_score = $6,
+         ai_quality_issues = $7,
+         extracted_content = $8,
+         ai_request_data = $9,
+         ai_response_data = $10,
+         extraction_method = $11,
+         extraction_metadata = $12,
          status = 'ai_analyzed',
          updated_at = NOW() 
-         WHERE id = $6 
+         WHERE id = $13 
          RETURNING id, status, ai_summary`,
         [
           summary.shortSummary || null,
@@ -284,6 +331,13 @@ export class AIService {
           JSON.stringify(summary.tags || []),
           summary.category || null,
           job.provider,
+          summary.qualityScore || null,
+          JSON.stringify(summary.qualityIssues || []),
+          content.textContent || null, // Store extracted content
+          JSON.stringify(aiRequestData),
+          JSON.stringify(aiResponseData),
+          content.extractionMethod || 'unknown',
+          JSON.stringify(extractionMetadata),
           job.bookmarkId,
         ]
       );

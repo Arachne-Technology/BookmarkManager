@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { BookmarkDetailPane } from '../components/BookmarkDetailPane';
 import { BookmarkTree } from '../components/BookmarkTree';
+import { ExpertModeModal } from '../components/ExpertModeModal';
 import { FloatingActionMenu } from '../components/FloatingActionMenu';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { SessionInfo } from '../components/SessionInfo';
@@ -13,6 +14,7 @@ export function BookmarkPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const [selectedBookmarks, setSelectedBookmarks] = useState<Bookmark[]>([]);
   const [detailPaneBookmark, setDetailPaneBookmark] = useState<Bookmark | null>(null);
+  const [expertModeBookmarkId, setExpertModeBookmarkId] = useState<string | null>(null);
 
   const { data: session, isLoading: sessionLoading } = useQuery({
     queryKey: ['session', sessionId],
@@ -65,6 +67,14 @@ export function BookmarkPage() {
     setDetailPaneBookmark(null);
   };
 
+  const handleExpertMode = (bookmarkId: string) => {
+    setExpertModeBookmarkId(bookmarkId);
+  };
+
+  const handleExpertModeClose = () => {
+    setExpertModeBookmarkId(null);
+  };
+
   return (
     <div className={`space-y-6 ${detailPaneBookmark ? 'mr-96' : ''} transition-all duration-300`}>
       <SessionInfo session={session} />
@@ -97,6 +107,15 @@ export function BookmarkPage() {
             // TODO: Implement move functionality
             console.log('Moving bookmark:', bookmarkId);
           }}
+          onExpertMode={handleExpertMode}
+        />
+      )}
+
+      {expertModeBookmarkId && (
+        <ExpertModeModal
+          bookmarkId={expertModeBookmarkId}
+          isOpen={!!expertModeBookmarkId}
+          onClose={handleExpertModeClose}
         />
       )}
     </div>

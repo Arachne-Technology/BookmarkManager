@@ -46,6 +46,7 @@ CREATE INDEX IF NOT EXISTS idx_bookmarks_ai_provider ON bookmarks(ai_provider);
 CREATE INDEX IF NOT EXISTS idx_bookmarks_ai_category ON bookmarks(ai_category);
 
 -- Trigger for user_preferences updated_at
+DROP TRIGGER IF EXISTS update_user_preferences_updated_at ON user_preferences;
 CREATE TRIGGER update_user_preferences_updated_at 
     BEFORE UPDATE ON user_preferences 
     FOR EACH ROW 

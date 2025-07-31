@@ -14,6 +14,8 @@ export interface AISummaryResult {
   provider: string;
   confidence: number;
   error?: string;
+  qualityScore?: number;
+  qualityIssues?: string[];
 }
 
 export interface AIProviderConfig {
@@ -46,6 +48,12 @@ export interface WebPageContent {
   metaDescription?: string;
   screenshot?: Buffer;
   error?: string;
+  // Expert mode metadata
+  extractionMethod?: string;
+  originalSize?: number;
+  extractionTime?: number;
+  attempts?: number;
+  failedMethods?: string[];
 }
 
 export interface ContentSufficiencyResult {
@@ -53,4 +61,19 @@ export interface ContentSufficiencyResult {
   confidence: number;
   reason: string;
   suggestedAction: 'use_current' | 'fetch_more' | 'metadata_only';
+}
+
+export interface ResponseQualityAssessment {
+  isHighQuality: boolean;
+  qualityScore: number; // 0-1 scale
+  issues: ResponseQualityIssue[];
+  suggestedAction: 'accept' | 'retry_different_scraping' | 'use_metadata_only' | 'mark_as_failed';
+  confidence: number;
+}
+
+export interface ResponseQualityIssue {
+  type: 'insufficient_content' | 'generic_response' | 'error_acknowledgment' | 'incomplete_analysis' | 'low_confidence' | 'content_blocked';
+  severity: 'low' | 'medium' | 'high';
+  description: string;
+  suggestedFix?: string;
 }

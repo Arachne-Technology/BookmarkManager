@@ -108,6 +108,11 @@ CREATE TRIGGER update_user_preferences_updated_at
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
+-- Apply migrations
+\i /docker-entrypoint-initdb.d/migrations/001_add_ai_fields.sql
+\i /docker-entrypoint-initdb.d/migrations/002_add_quality_tracking.sql
+\i /docker-entrypoint-initdb.d/migrations/003_add_expert_mode_data.sql
+
 -- Insert a sample session for testing
 INSERT INTO sessions (id, file_name, original_count, status) 
 VALUES ('550e8400-e29b-41d4-a716-446655440000', 'sample_bookmarks.html', 0, 'active');

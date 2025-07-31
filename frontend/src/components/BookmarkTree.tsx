@@ -323,9 +323,6 @@ function BookmarkItem({
 
           <div className="flex items-center space-x-2">
             <p className="text-xs text-gray-500 truncate flex-1">{bookmark.url}</p>
-            {bookmark.ai_summary && (
-              <span className="text-xs text-green-600 font-medium">AI Analyzed</span>
-            )}
           </div>
 
           {bookmark.ai_summary && (
