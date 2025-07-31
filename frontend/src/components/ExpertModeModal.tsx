@@ -219,7 +219,7 @@ export function ExpertModeModal({ bookmarkId, isOpen, onClose }: ExpertModeModal
               </div>
 
               {/* Tab Content */}
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex-1 overflow-y-auto p-6 min-h-0">
                 {activeTab === 'extraction' && (
                   <div className="space-y-6">
                     <div>

@@ -76,9 +76,9 @@ export function BookmarkDetailPane({
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-xl z-40 transform transition-transform duration-300 ease-in-out">
+    <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-white shadow-xl z-40 transform transition-transform duration-300 ease-in-out flex flex-col max-w-full">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
         <h2 className="text-lg font-semibold text-gray-900">Bookmark Details</h2>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
           <X className="h-5 w-5" />
@@ -86,7 +86,7 @@ export function BookmarkDetailPane({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         {/* Basic Info */}
         <div className="p-4 border-b border-gray-200">
           <div className="space-y-3">
