@@ -41,7 +41,46 @@ router.get('/:bookmarkId', async (req, res) => {
 
     const bookmark = result.rows[0];
 
-    // Parse JSON fields
+    console.log(`[Expert Routes] Raw database result:`, {
+      id: bookmark.id,
+      title: bookmark.title?.substring(0, 50),
+      hasAiRequestData: !!bookmark.ai_request_data,
+      hasAiResponseData: !!bookmark.ai_response_data,
+      aiRequestDataType: typeof bookmark.ai_request_data,
+      aiResponseDataType: typeof bookmark.ai_response_data,
+      extractionMethod: bookmark.extraction_method
+    });
+
+    // Helper function to safely parse JSON (PostgreSQL may return objects or strings)
+    const safeJsonParse = (jsonData: any, fieldName: string) => {
+      if (jsonData === null || jsonData === undefined) {
+        console.log(`[Expert Routes] Null/undefined ${fieldName}, returning null`);
+        return null;
+      }
+      
+      // If it's already an object, return it directly (PostgreSQL JSONB)
+      if (typeof jsonData === 'object') {
+        return jsonData;
+      }
+      
+      // If it's a string, try to parse it
+      if (typeof jsonData === 'string') {
+        if (!jsonData.trim()) {
+          return null;
+        }
+        try {
+          return JSON.parse(jsonData);
+        } catch (error) {
+          console.error(`[Expert Routes] Failed to parse ${fieldName}:`, error);
+          return null;
+        }
+      }
+      
+      console.warn(`[Expert Routes] Unexpected type for ${fieldName}:`, typeof jsonData);
+      return null;
+    };
+
+    // Parse JSON fields with proper error handling
     const expertData = {
       bookmark: {
         id: bookmark.id,
@@ -54,19 +93,28 @@ router.get('/:bookmarkId', async (req, res) => {
       },
       extraction: {
         method: bookmark.extraction_method,
-        metadata: bookmark.extraction_metadata && bookmark.extraction_metadata.trim() ? JSON.parse(bookmark.extraction_metadata) : null,
-        extractedContent: bookmark.extracted_content,
+        metadata: safeJsonParse(bookmark.extraction_metadata, 'extraction_metadata') || {},
+        extractedContent: bookmark.extracted_content || '',
         contentLength: bookmark.extracted_content ? bookmark.extracted_content.length : 0,
-        contentPreview: bookmark.extracted_content ? bookmark.extracted_content.substring(0, 500) + '...' : null
+        contentPreview: bookmark.extracted_content ? bookmark.extracted_content.substring(0, 500) + '...' : ''
       },
       aiAnalysis: {
         qualityScore: bookmark.ai_quality_score,
-        qualityIssues: bookmark.ai_quality_issues && bookmark.ai_quality_issues.trim() ? JSON.parse(bookmark.ai_quality_issues) : [],
-        requestData: bookmark.ai_request_data && bookmark.ai_request_data.trim() ? JSON.parse(bookmark.ai_request_data) : null,
-        responseData: bookmark.ai_response_data && bookmark.ai_response_data.trim() ? JSON.parse(bookmark.ai_response_data) : null
+        qualityIssues: safeJsonParse(bookmark.ai_quality_issues, 'ai_quality_issues') || [],
+        requestData: safeJsonParse(bookmark.ai_request_data, 'ai_request_data'),
+        responseData: safeJsonParse(bookmark.ai_response_data, 'ai_response_data')
       }
     };
 
+    console.log(`[Expert Routes] Final expert data structure:`, {
+      hasBookmark: !!expertData.bookmark,
+      hasExtraction: !!expertData.extraction,
+      hasAiAnalysis: !!expertData.aiAnalysis,
+      hasRequestData: !!expertData.aiAnalysis?.requestData,
+      hasResponseData: !!expertData.aiAnalysis?.responseData,
+      extractionMethod: expertData.extraction?.method
+    });
+    
     console.log(`[Expert Routes] Returning expert data for bookmark: ${bookmarkId}`);
     return res.json(expertData);
 

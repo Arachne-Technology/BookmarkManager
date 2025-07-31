@@ -85,13 +85,56 @@ export function ExpertModeModal({ bookmarkId, isOpen, onClose }: ExpertModeModal
     setError(null);
     
     try {
+      console.log(`[ExpertMode] Fetching data for bookmark: ${bookmarkId}`);
       const response = await fetch(`/api/expert/${bookmarkId}`);
+      
+      console.log(`[ExpertMode] Response status: ${response.status}`);
+      console.log(`[ExpertMode] Response headers:`, Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch expert data');
+        const errorText = await response.text();
+        console.error(`[ExpertMode] API error response:`, errorText);
+        throw new Error(`Failed to fetch expert data: ${response.status}`);
       }
-      const data = await response.json();
+      
+      const responseText = await response.text();
+      console.log(`[ExpertMode] Raw response text:`, responseText);
+      console.log(`[ExpertMode] Response text length:`, responseText.length);
+      console.log(`[ExpertMode] First 100 chars:`, responseText.substring(0, 100));
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log(`[ExpertMode] Successfully parsed JSON data:`, data);
+      } catch (parseError) {
+        console.error(`[ExpertMode] JSON parse error:`, parseError);
+        console.error(`[ExpertMode] Failed response text:`, responseText);
+        console.error(`[ExpertMode] Response text as bytes:`, new TextEncoder().encode(responseText));
+        throw new Error('Invalid JSON response from server');
+      }
+      
+      // Validate the data structure
+      if (!data || typeof data !== 'object') {
+        console.error(`[ExpertMode] Invalid data structure:`, data);
+        throw new Error('Invalid data structure received');
+      }
+      
+      // Debug the data structure
+      console.log('[ExpertMode] AI Analysis section:', data.aiAnalysis);
+      console.log('[ExpertMode] Request data type:', typeof data.aiAnalysis?.requestData);
+      console.log('[ExpertMode] Response data type:', typeof data.aiAnalysis?.responseData);
+      
+      if (!data.bookmark || !data.extraction || !data.aiAnalysis) {
+        console.warn(`[ExpertMode] Missing data sections:`, {
+          hasBookmark: !!data.bookmark,
+          hasExtraction: !!data.extraction,
+          hasAiAnalysis: !!data.aiAnalysis
+        });
+      }
+      
       setExpertData(data);
     } catch (err) {
+      console.error(`[ExpertMode] Error:`, err);
       setError(err instanceof Error ? err.message : 'Failed to load expert data');
     } finally {
       setLoading(false);
@@ -324,7 +367,17 @@ export function ExpertModeModal({ bookmarkId, isOpen, onClose }: ExpertModeModal
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="font-semibold text-gray-900">AI Request Data</h4>
                         <button
-                          onClick={() => copyToClipboard(JSON.stringify(expertData.aiAnalysis.requestData, null, 2), 'Request Data')}
+                          onClick={() => {
+                            try {
+                              const data = expertData.aiAnalysis.requestData ? 
+                                JSON.stringify(expertData.aiAnalysis.requestData, null, 2) : 
+                                'No request data available';
+                              copyToClipboard(data, 'Request Data');
+                            } catch (e) {
+                              console.error('[ExpertMode] Error copying request data:', e);
+                              copyToClipboard('Error processing request data', 'Request Data');
+                            }
+                          }}
                           className="text-sm text-purple-600 hover:text-purple-800 flex items-center"
                         >
                           <Copy className="h-3 w-3 mr-1" />
@@ -333,7 +386,16 @@ export function ExpertModeModal({ bookmarkId, isOpen, onClose }: ExpertModeModal
                       </div>
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <pre className="text-sm text-gray-700 overflow-x-auto">
-                          {JSON.stringify(expertData.aiAnalysis.requestData, null, 2)}
+                          {(() => {
+                            try {
+                              return expertData.aiAnalysis.requestData ? 
+                                JSON.stringify(expertData.aiAnalysis.requestData, null, 2) : 
+                                'No request data available';
+                            } catch (e) {
+                              console.error('[ExpertMode] Error stringifying request data:', e);
+                              return 'Error displaying request data';
+                            }
+                          })()}
                         </pre>
                       </div>
                     </div>
@@ -342,7 +404,17 @@ export function ExpertModeModal({ bookmarkId, isOpen, onClose }: ExpertModeModal
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="font-semibold text-gray-900">AI Response Data</h4>
                         <button
-                          onClick={() => copyToClipboard(JSON.stringify(expertData.aiAnalysis.responseData, null, 2), 'Response Data')}
+                          onClick={() => {
+                            try {
+                              const data = expertData.aiAnalysis.responseData ? 
+                                JSON.stringify(expertData.aiAnalysis.responseData, null, 2) : 
+                                'No response data available';
+                              copyToClipboard(data, 'Response Data');
+                            } catch (e) {
+                              console.error('[ExpertMode] Error copying response data:', e);
+                              copyToClipboard('Error processing response data', 'Response Data');
+                            }
+                          }}
                           className="text-sm text-purple-600 hover:text-purple-800 flex items-center"
                         >
                           <Copy className="h-3 w-3 mr-1" />
@@ -351,7 +423,16 @@ export function ExpertModeModal({ bookmarkId, isOpen, onClose }: ExpertModeModal
                       </div>
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <pre className="text-sm text-gray-700 overflow-x-auto">
-                          {JSON.stringify(expertData.aiAnalysis.responseData, null, 2)}
+                          {(() => {
+                            try {
+                              return expertData.aiAnalysis.responseData ? 
+                                JSON.stringify(expertData.aiAnalysis.responseData, null, 2) : 
+                                'No response data available';
+                            } catch (e) {
+                              console.error('[ExpertMode] Error stringifying response data:', e);
+                              return 'Error displaying response data';
+                            }
+                          })()}
                         </pre>
                       </div>
                     </div>
