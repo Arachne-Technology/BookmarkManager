@@ -44,7 +44,7 @@ router.get('/:sessionId', async (req, res, next) => {
     const db = getDatabase();
 
     const result = await db.query(
-      'SELECT provider, model, max_tokens, temperature FROM user_preferences WHERE session_id = $1',
+      'SELECT provider, model, max_tokens, temperature, api_key_encrypted FROM user_preferences WHERE session_id = $1',
       [sessionId]
     );
 
@@ -53,7 +53,12 @@ router.get('/:sessionId', async (req, res, next) => {
       model: null,
       max_tokens: 1000,
       temperature: 0.7,
+      api_key_encrypted: null,
     };
+
+    // Add a flag to indicate if API key exists, without exposing the actual key
+    preferences.hasApiKey = !!preferences.api_key_encrypted;
+    delete preferences.api_key_encrypted; // Remove the encrypted key from response
 
     res.json(preferences);
     return;

@@ -21,6 +21,8 @@ function App() {
         <Route path="/bookmarks/:sessionId" element={<BookmarkPage />} />
         {/* Settings page: AI provider configuration */}
         <Route path="/settings/:sessionId" element={<SettingsPage />} />
+        {/* Settings page: AI provider configuration (without session) */}
+        <Route path="/settings" element={<SettingsPage />} />
       </Routes>
     </Layout>
   );

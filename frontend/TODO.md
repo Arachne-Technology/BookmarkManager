@@ -9,6 +9,7 @@
 - [ ] **Add processing queue visualization** - Show batch processing status and progress
 - [ ] **Implement export functionality UI** - Download interface for cleaned bookmark files
 - [ ] **Add WebSocket integration** - Real-time updates for processing status
+- [ ] **Delete Functions** - Delete functions do not work.
 
 ## Testing Gaps
 - [ ] **API Key Validation Flow** - Test invalid keys, network errors, success states

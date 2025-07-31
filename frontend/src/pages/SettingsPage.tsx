@@ -35,6 +35,7 @@ export function SettingsPage() {
     temperature: 0.7,
   });
   const [showApiKey, setShowApiKey] = useState(false);
+  const [isApiKeyPlaceholder, setIsApiKeyPlaceholder] = useState(false);
   const [apiKeyTest, setApiKeyTest] = useState<{
     testing: boolean;
     result?: { isValid: boolean; message: string };
@@ -50,7 +51,7 @@ export function SettingsPage() {
   });
 
   // Load available providers
-  const { data: _providersData } = useQuery({
+  const { data: providersData } = useQuery({
     queryKey: ['ai-providers'],
     queryFn: getAIProviders
   });
@@ -100,13 +101,15 @@ export function SettingsPage() {
   // Load preferences into form
   useEffect(() => {
     if (preferences) {
+      const hasExistingKey = !!preferences.hasApiKey;
       setFormData({
         provider: preferences.provider || 'claude',
-        apiKey: '', // Never pre-fill API key for security
+        apiKey: hasExistingKey ? '•••••••••••••••••••••••••••••••' : '', // Show dots if API key exists
         model: preferences.model || '',
         maxTokens: preferences.maxTokens || 1000,
         temperature: preferences.temperature || 0.7,
       });
+      setIsApiKeyPlaceholder(hasExistingKey);
     }
   }, [preferences]);
 
@@ -115,15 +118,19 @@ export function SettingsPage() {
     // Clear API key test result when changing provider or key
     if (field === 'provider' || field === 'apiKey') {
       setApiKeyTest({ testing: false });
-      // Refetch models when API key changes (with debounce)
-      if (field === 'apiKey' && value && value.length > 10) {
-        setTimeout(() => refetchModels(), 500);
+      // If user starts typing in API key field, clear placeholder state
+      if (field === 'apiKey') {
+        setIsApiKeyPlaceholder(false);
+        // Refetch models when API key changes (with debounce)
+        if (value && value.length > 10) {
+          setTimeout(() => refetchModels(), 500);
+        }
       }
     }
   };
 
   const handleTestApiKey = () => {
-    if (!formData.provider || !formData.apiKey) {
+    if (!formData.provider || !formData.apiKey || isApiKeyPlaceholder) {
       toast.error('Please select a provider and enter an API key');
       return;
     }
@@ -136,7 +143,12 @@ export function SettingsPage() {
   };
 
   const handleSave = () => {
-    updatePreferencesMutation.mutate(formData);
+    const dataToSave = { ...formData };
+    // Don't save the placeholder dots - send empty string to keep existing key
+    if (isApiKeyPlaceholder) {
+      dataToSave.apiKey = '';
+    }
+    updatePreferencesMutation.mutate(dataToSave);
   };
 
   if (preferencesLoading) {
@@ -201,8 +213,14 @@ export function SettingsPage() {
                 type={showApiKey ? 'text' : 'password'}
                 value={formData.apiKey}
                 onChange={(e) => handleInputChange('apiKey', e.target.value)}
-                placeholder={`Enter your ${formData.provider === 'claude' ? 'Claude' : 'OpenAI'} API key`}
-                className="w-full px-3 py-2 pr-20 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder={
+                  isApiKeyPlaceholder 
+                    ? 'API key is configured (click to replace)' 
+                    : `Enter your ${formData.provider === 'claude' ? 'Claude' : 'OpenAI'} API key`
+                }
+                className={`w-full px-3 py-2 pr-20 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+                  isApiKeyPlaceholder ? 'text-gray-500 italic' : ''
+                }`}
               />
               <div className="absolute inset-y-0 right-0 flex items-center space-x-1 pr-3">
                 <button
@@ -212,7 +230,7 @@ export function SettingsPage() {
                 >
                   {showApiKey ? <X className="h-4 w-4" /> : <Key className="h-4 w-4" />}
                 </button>
-                {formData.apiKey && (
+                {formData.apiKey && !isApiKeyPlaceholder && (
                   <button
                     type="button"
                     onClick={handleTestApiKey}
@@ -228,6 +246,14 @@ export function SettingsPage() {
                 )}
               </div>
             </div>
+
+            {/* Placeholder Info */}
+            {isApiKeyPlaceholder && (
+              <div className="mt-2 flex items-center space-x-2 text-sm text-blue-600">
+                <Info className="h-4 w-4" />
+                <span>API key is saved from previous session. Start typing to replace it.</span>
+              </div>
+            )}
 
             {/* API Key Test Result */}
             {apiKeyTest.result && (
@@ -279,6 +305,30 @@ export function SettingsPage() {
               </div>
             </div>
           </div>
+
+          {/* Environment Configuration Status */}
+          {providersData?.providers && providersData.providers.length > 0 && (
+            <div className="p-3 bg-green-50 rounded-md">
+              <div className="flex items-start space-x-2">
+                <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-green-700">
+                  <p className="font-medium mb-1">Environment Configuration Detected:</p>
+                  <p>
+                    The following AI providers are pre-configured from environment variables: {' '}
+                    <span className="font-semibold">
+                      {providersData.providers.map(provider => 
+                        provider === 'claude' ? 'Anthropic Claude' : 
+                        provider === 'openai' ? 'OpenAI GPT' : provider
+                      ).join(', ')}
+                    </span>
+                  </p>
+                  <p className="mt-1 text-xs">
+                    You can use these providers immediately, or configure different API keys below for this session.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Model Selection */}
           <div>

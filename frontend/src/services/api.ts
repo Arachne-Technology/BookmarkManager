@@ -129,6 +129,7 @@ export interface UserPreferences {
   model?: string;
   maxTokens?: number;
   temperature?: number;
+  hasApiKey?: boolean;
 }
 
 // AI API functions

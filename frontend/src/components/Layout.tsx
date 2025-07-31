@@ -1,7 +1,8 @@
 // Import React types and UI components
 
-import { BookOpen } from 'lucide-react'; // Book icon for the application logo
+import { BookOpen, Settings } from 'lucide-react'; // Book icon for the application logo
 import type { ReactNode } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
 
 // Layout component provides consistent application shell
 
@@ -17,6 +18,11 @@ interface LayoutProps {
  * This wrapper component is used on all pages to maintain consistent styling and branding
  */
 export function Layout({ children }: LayoutProps) {
+  const { sessionId } = useParams<{ sessionId: string }>();
+  
+  // Determine settings URL - use sessionId if available, otherwise use a default route
+  const settingsUrl = sessionId ? `/settings/${sessionId}` : '/settings';
+
   return (
     <div className="min-h-screen bg-gray-50">
       {' '}
@@ -32,8 +38,18 @@ export function Layout({ children }: LayoutProps) {
               <BookOpen className="h-8 w-8 text-blue-600" /> {/* Application icon */}
               <h1 className="text-2xl font-bold text-gray-900">BookmarkParser</h1>
             </div>
-            {/* Right side: Application tagline */}
-            <div className="text-sm text-gray-500">AI-Powered Bookmark Management</div>
+            {/* Right side: Settings gear icon and tagline */}
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-500">AI-Powered Bookmark Management</div>
+              {/* Settings gear icon positioned at far right */}
+              <Link
+                to={settingsUrl}
+                className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                title="AI Settings"
+              >
+                <Settings className="h-5 w-5" />
+              </Link>
+            </div>
           </div>
         </div>
       </header>
