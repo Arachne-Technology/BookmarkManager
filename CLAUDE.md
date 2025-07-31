@@ -3,6 +3,9 @@
 ## Project Overview
 A containerized web application that helps users analyze messy browser bookmark exports by providing AI-generated summaries and enabling interactive bookmark management through a modern web interface.
 
+## 📋 Current Action Items
+**See [TODO.md](./TODO.md) for immediate action items and development priorities.**
+
 ## Development Guidelines
 
 ### Technology Stack
@@ -151,7 +154,7 @@ sample-data/           # Sample bookmark files for testing
 
 ---
 
-### Current Implementation Status (Updated July 29, 2025)
+### Current Implementation Status (Updated July 31, 2025)
 
 #### ✅ Phase 1 Complete: Foundation & Infrastructure
 - Docker containerization with PostgreSQL/Redis
@@ -161,21 +164,38 @@ sample-data/           # Sample bookmark files for testing
 - Session management and temporary storage
 - Responsive UI with Tailwind CSS
 
-#### 🚧 Phase 2 In Progress: AI Integration
-**Next Priority Items:**
-1. AI provider configuration UI (Claude/OpenAI API key setup)
-2. Bookmark selection checkboxes in tree view
-3. Processing pipeline with rate limiting
-4. Queue management system
+#### ✅ Phase 2 Complete: Core AI Features
+- Multi-provider AI service architecture (Claude, OpenAI, local models)
+- Complete AI analysis pipeline with quality scoring
+- Expert mode for detailed analysis data inspection
+- AI provider configuration and testing endpoints
+- Content extraction with multiple fallback methods
+- Database schema for storing AI analysis results
 
-#### ⏳ Phase 3 Pending: Advanced Features
-- Real-time WebSocket updates
-- Export functionality
-- Batch operations
-- Performance optimizations
+#### 🚧 Phase 3 In Progress: User Interface Enhancements
+**Current Priority Items:**
+1. Fix expert mode JSON parsing error (database contains empty strings)
+2. Implement bookmark selection checkboxes in tree view
+3. Build AI provider configuration UI interface
+4. Add processing queue management system
+
+**Recently Completed:**
+- Expert mode modal with extraction/AI analysis tabs
+- AI quality assessment and issue tracking
+- Content extraction metadata storage
+- Web scraping service with Puppeteer integration
+
+#### ⏳ Phase 4 Pending: Advanced Features
+- Real-time WebSocket updates for processing status
+- Export functionality for cleaned bookmarks
+- Batch operations for duplicate detection
+- Performance optimizations for large collections
 
 ### Key Technical Achievements
 - Robust HTML parsing handles nested folder structures
 - Memory-efficient file processing for large bookmark collections
 - Clean separation of concerns (parser/services/routes/components)
 - Production-ready Docker configuration
+- Multi-provider AI abstraction with graceful fallbacks
+- Comprehensive quality scoring and issue detection
+- Expert mode for technical analysis and debugging

@@ -54,16 +54,16 @@ router.get('/:bookmarkId', async (req, res) => {
       },
       extraction: {
         method: bookmark.extraction_method,
-        metadata: bookmark.extraction_metadata ? JSON.parse(bookmark.extraction_metadata) : null,
+        metadata: bookmark.extraction_metadata && bookmark.extraction_metadata.trim() ? JSON.parse(bookmark.extraction_metadata) : null,
         extractedContent: bookmark.extracted_content,
         contentLength: bookmark.extracted_content ? bookmark.extracted_content.length : 0,
         contentPreview: bookmark.extracted_content ? bookmark.extracted_content.substring(0, 500) + '...' : null
       },
       aiAnalysis: {
         qualityScore: bookmark.ai_quality_score,
-        qualityIssues: bookmark.ai_quality_issues ? JSON.parse(bookmark.ai_quality_issues) : [],
-        requestData: bookmark.ai_request_data ? JSON.parse(bookmark.ai_request_data) : null,
-        responseData: bookmark.ai_response_data ? JSON.parse(bookmark.ai_response_data) : null
+        qualityIssues: bookmark.ai_quality_issues && bookmark.ai_quality_issues.trim() ? JSON.parse(bookmark.ai_quality_issues) : [],
+        requestData: bookmark.ai_request_data && bookmark.ai_request_data.trim() ? JSON.parse(bookmark.ai_request_data) : null,
+        responseData: bookmark.ai_response_data && bookmark.ai_response_data.trim() ? JSON.parse(bookmark.ai_response_data) : null
       }
     };
 

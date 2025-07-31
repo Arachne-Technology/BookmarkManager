@@ -1,5 +1,8 @@
 # Backend Development Guidelines - BookmarkParser
 
+## 📋 Backend Action Items
+**See [TODO.md](./TODO.md) for backend-specific immediate action items and development priorities.**
+
 ## Context
 This is the backend directory for BookmarkParser, a Node.js/Express API server that handles bookmark parsing, AI analysis, and data management. The backend provides REST endpoints for the React frontend and manages AI provider integrations.
 

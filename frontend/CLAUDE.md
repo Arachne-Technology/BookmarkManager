@@ -1,5 +1,8 @@
 # Frontend Development Guidelines - BookmarkParser
 
+## 📋 Frontend Action Items
+**See [TODO.md](./TODO.md) for frontend-specific immediate action items and development priorities.**
+
 ## Context
 This is the frontend directory for BookmarkParser, a React web application that provides an intuitive interface for uploading, analyzing, and managing browser bookmark collections with AI-powered content summarization.
 
