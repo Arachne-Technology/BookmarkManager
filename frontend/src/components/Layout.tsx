@@ -2,7 +2,7 @@
 
 import { BookOpen, Settings } from 'lucide-react'; // Book icon for the application logo
 import type { ReactNode } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 // Layout component provides consistent application shell
 

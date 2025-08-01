@@ -37,24 +37,32 @@ function decrypt(text: string): string {
 }
 */
 
-// Get user preferences for a session
-router.get('/:sessionId', async (req, res, next) => {
+// Get user preferences - either for a session or global defaults
+router.get('/:sessionId?', async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     const db = getDatabase();
 
+    let preferences;
+    const effectiveSessionId = sessionId || 'global';
+
+    // Get preferences from database
     const result = await db.query(
       'SELECT provider, model, max_tokens, temperature, api_key_encrypted FROM user_preferences WHERE session_id = $1',
-      [sessionId]
+      [effectiveSessionId]
     );
+    preferences = result.rows[0];
 
-    const preferences = result.rows[0] || {
-      provider: process.env.DEFAULT_AI_PROVIDER || 'claude',
-      model: null,
-      max_tokens: 1000,
-      temperature: 0.7,
-      api_key_encrypted: null,
-    };
+    // If no preferences found, use defaults
+    if (!preferences) {
+      preferences = {
+        provider: process.env.DEFAULT_AI_PROVIDER || 'claude',
+        model: null,
+        max_tokens: 1000,
+        temperature: 0.7,
+        api_key_encrypted: null,
+      };
+    }
 
     // Add a flag to indicate if API key exists, without exposing the actual key
     preferences.hasApiKey = !!preferences.api_key_encrypted;
@@ -68,16 +76,19 @@ router.get('/:sessionId', async (req, res, next) => {
   }
 });
 
-// Update user preferences
-router.put('/:sessionId', async (req, res, next) => {
+// Update user preferences - either for a session or global defaults
+router.put('/:sessionId?', async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     const { provider, apiKey, model, maxTokens, temperature } = req.body;
     const db = getDatabase();
 
+    // Use 'global' as session_id for global preferences when no sessionId provided
+    const effectiveSessionId = sessionId || 'global';
+
     // Check if preferences exist
     const existingResult = await db.query('SELECT id FROM user_preferences WHERE session_id = $1', [
-      sessionId,
+      effectiveSessionId,
     ]);
 
     const encryptedApiKey = apiKey ? encrypt(apiKey) : null;
@@ -93,14 +104,14 @@ router.put('/:sessionId', async (req, res, next) => {
          temperature = COALESCE($5, temperature),
          updated_at = NOW()
          WHERE session_id = $6`,
-        [provider, encryptedApiKey, model, maxTokens, temperature, sessionId]
+        [provider, encryptedApiKey, model, maxTokens, temperature, effectiveSessionId]
       );
     } else {
       // Create new preferences
       await db.query(
         `INSERT INTO user_preferences (session_id, provider, api_key_encrypted, model, max_tokens, temperature)
          VALUES ($1, $2, $3, $4, $5, $6)`,
-        [sessionId, provider, encryptedApiKey, model, maxTokens, temperature]
+        [effectiveSessionId, provider, encryptedApiKey, model, maxTokens, temperature]
       );
     }
 
@@ -113,7 +124,7 @@ router.put('/:sessionId', async (req, res, next) => {
 });
 
 // Test API key
-router.post('/:sessionId/test', async (req, res, next) => {
+router.post('/:sessionId?/test', async (req, res, next) => {
   try {
     const { sessionId: _sessionId } = req.params;
     const { provider, apiKey } = req.body;

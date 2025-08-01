@@ -23,7 +23,7 @@ import {
 } from '../services/api';
 
 export function SettingsPage() {
-  const { sessionId } = useParams<{ sessionId: string }>();
+  const { sessionId } = useParams<{ sessionId?: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -45,9 +45,8 @@ export function SettingsPage() {
 
   // Load user preferences
   const { data: preferences, isLoading: preferencesLoading } = useQuery({
-    queryKey: ['preferences', sessionId],
-    queryFn: () => getUserPreferences(sessionId!),
-    enabled: !!sessionId
+    queryKey: ['preferences', sessionId || 'global'],
+    queryFn: () => getUserPreferences(sessionId),
   });
 
   // Load available providers
@@ -58,19 +57,19 @@ export function SettingsPage() {
 
   // Load available models for selected provider
   const { data: modelsData, refetch: refetchModels } = useQuery({
-    queryKey: ['models', formData.provider, formData.apiKey],
+    queryKey: ['models', formData.provider],
     queryFn: () => getAvailableModels(formData.provider, formData.apiKey || undefined),
-    enabled: !!formData.provider,
+    enabled: false, // Disable automatic fetching
     retry: false, // Don't retry failed model requests
   });
 
   // Update preferences mutation
   const updatePreferencesMutation = useMutation({
     mutationFn: (data: Partial<UserPreferences & { apiKey?: string }>) =>
-      updateUserPreferences(sessionId!, data),
+      updateUserPreferences(sessionId, data),
     onSuccess: () => {
       toast.success('Settings saved successfully!');
-      queryClient.invalidateQueries({ queryKey: ['preferences', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['preferences', sessionId || 'global'] });
     },
     onError: (error: any) => {
       toast.error('Failed to save settings');
@@ -81,7 +80,7 @@ export function SettingsPage() {
   // Test API key mutation
   const testApiKeyMutation = useMutation({
     mutationFn: ({ provider, apiKey }: { provider: string; apiKey: string }) =>
-      testAPIKey(sessionId!, provider, apiKey),
+      testAPIKey(sessionId, provider, apiKey),
     onSuccess: (result) => {
       setApiKeyTest({ testing: false, result });
       if (result.isValid) {
@@ -110,8 +109,13 @@ export function SettingsPage() {
         temperature: preferences.temperature || 0.7,
       });
       setIsApiKeyPlaceholder(hasExistingKey);
+      
+      // Fetch models if we have an existing API key
+      if (hasExistingKey) {
+        setTimeout(() => refetchModels(), 100);
+      }
     }
-  }, [preferences]);
+  }, [preferences, refetchModels]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -121,10 +125,10 @@ export function SettingsPage() {
       // If user starts typing in API key field, clear placeholder state
       if (field === 'apiKey') {
         setIsApiKeyPlaceholder(false);
-        // Refetch models when API key changes (with debounce)
-        if (value && value.length > 10) {
-          setTimeout(() => refetchModels(), 500);
-        }
+      }
+      // Fetch models when provider changes (if we have an API key)
+      if (field === 'provider' && formData.apiKey && !isApiKeyPlaceholder) {
+        setTimeout(() => refetchModels(), 100);
       }
     }
   };
@@ -140,6 +144,12 @@ export function SettingsPage() {
       provider: formData.provider,
       apiKey: formData.apiKey,
     });
+  };
+
+  const handleApiKeyKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && formData.apiKey && formData.apiKey.length > 10 && !isApiKeyPlaceholder) {
+      refetchModels();
+    }
   };
 
   const handleSave = () => {
@@ -163,22 +173,54 @@ export function SettingsPage() {
     <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-8">
-        <button
-          onClick={() => navigate(`/bookmarks/${sessionId}`)}
-          className="flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Back to Bookmarks
-        </button>
+        {sessionId ? (
+          <button
+            onClick={() => navigate(`/bookmarks/${sessionId}`)}
+            className="flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Bookmarks
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Home
+          </button>
+        )}
 
         <div className="flex items-center space-x-3">
           <Settings className="h-8 w-8 text-blue-500" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">AI Settings</h1>
-            <p className="text-sm text-gray-600">Configure your AI providers and preferences</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {sessionId ? 'Session AI Settings' : 'Global AI Settings'}
+            </h1>
+            <p className="text-sm text-gray-600">
+              {sessionId 
+                ? 'Configure AI providers for this bookmark session' 
+                : 'Configure your default AI providers and preferences'
+              }
+            </p>
           </div>
         </div>
       </div>
+
+      {/* Configuration Status */}
+      {preferences?.hasApiKey && preferences?.model && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center space-x-2">
+            <Check className="h-5 w-5 text-green-600" />
+            <div>
+              <h4 className="text-sm font-medium text-green-900">AI Provider Configured</h4>
+              <p className="text-sm text-green-700">
+                {preferences.provider === 'claude' ? 'Anthropic Claude' : 'OpenAI GPT'} is configured with model {preferences.model}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
@@ -192,16 +234,30 @@ export function SettingsPage() {
           {/* Provider Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">AI Provider</label>
-            <select
-              value={formData.provider}
-              onChange={(e) => handleInputChange('provider', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="claude">Anthropic Claude</option>
-              <option value="openai">OpenAI GPT</option>
-            </select>
+            <div className="relative">
+              <select
+                value={formData.provider}
+                onChange={(e) => handleInputChange('provider', e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="claude">
+                  Anthropic Claude {formData.provider === 'claude' && preferences?.hasApiKey ? '✓' : ''}
+                </option>
+                <option value="openai">
+                  OpenAI GPT {formData.provider === 'openai' && preferences?.hasApiKey ? '✓' : ''}
+                </option>
+              </select>
+              {preferences?.hasApiKey && formData.provider && (
+                <div className="absolute inset-y-0 right-0 flex items-center pr-8">
+                  <Check className="h-4 w-4 text-green-500" />
+                </div>
+              )}
+            </div>
             <p className="mt-1 text-xs text-gray-500">
               Choose your preferred AI provider for bookmark analysis
+              {preferences?.hasApiKey && (
+                <span className="text-green-600 ml-1">• API key configured</span>
+              )}
             </p>
           </div>
 
@@ -213,10 +269,11 @@ export function SettingsPage() {
                 type={showApiKey ? 'text' : 'password'}
                 value={formData.apiKey}
                 onChange={(e) => handleInputChange('apiKey', e.target.value)}
+                onKeyDown={handleApiKeyKeyDown}
                 placeholder={
                   isApiKeyPlaceholder 
                     ? 'API key is configured (click to replace)' 
-                    : `Enter your ${formData.provider === 'claude' ? 'Claude' : 'OpenAI'} API key`
+                    : `Enter your ${formData.provider === 'claude' ? 'Claude' : 'OpenAI'} API key (press Enter to load models)`
                 }
                 className={`w-full px-3 py-2 pr-20 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
                   isApiKeyPlaceholder ? 'text-gray-500 italic' : ''

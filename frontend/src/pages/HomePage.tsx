@@ -1,7 +1,19 @@
 // Home page component with file upload interface
+import { Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { FileUpload } from '../components/FileUpload';
+import { getUserPreferences } from '../services/api';
 
 export function HomePage() {
+  // Check if AI is configured
+  const { data: preferences } = useQuery({
+    queryKey: ['preferences', 'global'],
+    queryFn: () => getUserPreferences(),
+  });
+
+  const isAIConfigured = preferences?.hasApiKey && preferences?.model;
+
   return (
     <div className="space-y-8">
       <div className="text-center">
@@ -12,7 +24,28 @@ export function HomePage() {
         </p>
       </div>
 
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto space-y-4">
+        {/* AI Settings Notice - only show if not configured */}
+        {!isAIConfigured && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <Settings className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <h4 className="text-sm font-medium text-blue-900">Configure AI Settings</h4>
+                <p className="text-sm text-blue-700 mt-1">
+                  Set up your AI provider (Claude or OpenAI) before uploading to enable AI-powered bookmark analysis.
+                </p>
+                <Link
+                  to="/settings"
+                  className="inline-flex items-center mt-2 text-sm font-medium text-blue-600 hover:text-blue-500"
+                >
+                  Configure AI Settings →
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         <FileUpload />
       </div>
 

@@ -112,6 +112,7 @@ CREATE TRIGGER update_user_preferences_updated_at
 \i /docker-entrypoint-initdb.d/migrations/001_add_ai_fields.sql
 \i /docker-entrypoint-initdb.d/migrations/002_add_quality_tracking.sql
 \i /docker-entrypoint-initdb.d/migrations/003_add_expert_mode_data.sql
+\i /docker-entrypoint-initdb.d/migrations/004_allow_global_preferences.sql
 
 -- Insert a sample session for testing
 INSERT INTO sessions (id, file_name, original_count, status) 

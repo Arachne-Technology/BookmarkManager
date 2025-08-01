@@ -171,29 +171,32 @@ export async function getAIQueueStatus(): Promise<Record<string, number>> {
 }
 
 // Settings API functions
-export async function getUserPreferences(sessionId: string): Promise<UserPreferences> {
-  const response = await api.get<UserPreferences>(`/settings/${sessionId}`);
+export async function getUserPreferences(sessionId?: string): Promise<UserPreferences> {
+  const endpoint = sessionId ? `/settings/${sessionId}` : '/settings/global';
+  const response = await api.get<UserPreferences>(endpoint);
   return response.data;
 }
 
 export async function updateUserPreferences(
-  sessionId: string,
+  sessionId: string | undefined,
   preferences: Partial<UserPreferences & { apiKey?: string }>
 ): Promise<{ success: boolean; message: string }> {
+  const endpoint = sessionId ? `/settings/${sessionId}` : '/settings';
   const response = await api.put<{ success: boolean; message: string }>(
-    `/settings/${sessionId}`,
+    endpoint,
     preferences
   );
   return response.data;
 }
 
 export async function testAPIKey(
-  sessionId: string,
+  sessionId: string | undefined,
   provider: string,
   apiKey: string
 ): Promise<{ isValid: boolean; message: string }> {
+  const endpoint = sessionId ? `/settings/${sessionId}/test` : '/settings/test';
   const response = await api.post<{ isValid: boolean; message: string }>(
-    `/settings/${sessionId}/test`,
+    endpoint,
     { provider, apiKey }
   );
   return response.data;

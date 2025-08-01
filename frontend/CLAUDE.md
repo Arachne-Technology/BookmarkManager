@@ -260,6 +260,7 @@ const BookmarkList: React.FC = () => {
 - **Accessibility Tests**: Automated accessibility testing with axe-core
 - **Performance Tests**: Monitor component render times and bundle size
 
+
 ## Current Implementation Status
 
 ### ✅ Implemented
@@ -336,3 +337,4 @@ const testProvider = async (provider: string, apiKey: string): Promise<boolean> 
 - Maintain accessibility standards throughout the application
 - Implement proper error boundaries to prevent application crashes
 - Use TypeScript strictly to catch errors at compile time
+- **No Live Database Schema Changes**: Never make schema changes to the running database, ensure that all initialization changes can persist through a new docker compose.
